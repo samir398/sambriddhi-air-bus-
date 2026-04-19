@@ -1,14 +1,495 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Book premium sleeper bus seats from Itahari to Pokhara with Sambriddhi Air Bus. 2x1 layout, AC, comfortable journey at NPR 2,500." />
-    <title>Sambriddhi Air Bus | Premium Sleeper Service – Itahari to Pokhara</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sambriddhi Air Bus — Book Your Ticket</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{--g1:#1a6b2f;--g2:#22913f;--g3:#2dbd55;--g4:#4dd97a;--border:rgba(189, 160, 45, 0.25);}
+body{font-family:'Nunito',sans-serif;background:#0a1a0e;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:20px;}
+.app{position:relative;overflow:hidden;border-radius:16px;width:100%;max-width:480px;min-height:600px;}
+.bg-layer{position:absolute;inset:0;overflow:hidden;}
+.bg-img{width:100%;height:100%;object-fit:cover;object-position:center 60%;filter:brightness(0.28) saturate(0.6) hue-rotate(80deg);}
+.speed-lines{position:absolute;inset:0;overflow:hidden;}
+.sline{position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgba(77,217,122,0.15),transparent);animation:speedline 0.6s linear infinite;}
+@keyframes speedline{from{transform:translateX(-100%)}to{transform:translateX(200%)}}
+.sline:nth-child(1){top:20%;animation-duration:0.5s;width:60%;}
+.sline:nth-child(2){top:38%;animation-duration:0.7s;animation-delay:0.1s;width:80%;}
+.sline:nth-child(3){top:55%;animation-duration:0.45s;animation-delay:0.25s;width:50%;}
+.sline:nth-child(4){top:72%;animation-duration:0.65s;animation-delay:0.05s;width:70%;}
+.sline:nth-child(5){top:87%;animation-duration:0.55s;animation-delay:0.15s;width:90%;}
+.green-glow{position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:600px;height:300px;background:radial-gradient(ellipse,rgba(45,189,85,0.18) 0%,transparent 70%);animation:pulse 3s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:0.6;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.1)}}
+.particles{position:absolute;inset:0;overflow:hidden;}
+@keyframes float{0%{transform:translateY(0) translateX(0);opacity:0}10%{opacity:1}90%{opacity:0.5}100%{transform:translateY(-600px) translateX(20px);opacity:0}}
+.content{position:relative;z-index:2;padding:1.5rem;}
+.header{text-align:center;margin-bottom:1.5rem;animation:slideDown 0.6s ease both;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
+.logo-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(45,189,85,0.15);border:1px solid rgba(45,189,85,0.4);border-radius:30px;padding:5px 14px;margin-bottom:10px;}
+.logo-dot{width:8px;height:8px;background:#4dd97a;border-radius:50%;animation:blink 1.5s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.logo-text{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;color:#4dd97a;letter-spacing:2px;text-transform:uppercase;}
+.brand-name{font-family:'Rajdhani',sans-serif;font-size:34px;font-weight:700;color:#fff;line-height:1;letter-spacing:1px;}
+.brand-name span{color:#4dd97a;}
+.brand-sub{font-size:12px;color:rgba(255,255,255,0.5);letter-spacing:3px;text-transform:uppercase;margin-top:4px;}
+.price-pill{display:inline-block;background:rgba(45,189,85,0.2);border:1px solid rgba(77,217,122,0.4);border-radius:20px;padding:4px 14px;font-size:12px;color:#4dd97a;margin-top:8px;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:1px;}
+.steps{display:flex;margin-bottom:1.5rem;border:1px solid rgba(45,189,85,0.25);border-radius:10px;overflow:hidden;}
+.step{flex:1;padding:10px 6px;text-align:center;font-size:11px;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.4);background:rgba(0,0,0,0.3);transition:all 0.3s;}
+.step.active{background:#22913f;color:#fff;}
+.step.done{background:rgba(34,145,63,0.3);color:#4dd97a;}
+.panel{display:none;animation:fadein 0.4s ease;}.panel.active{display:block;}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.sec-label{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#4dd97a;margin-bottom:10px;}
+.routes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem;}
+.rc{background:rgba(0,0,0,0.45);border:1px solid rgba(45,189,85,0.25);border-radius:10px;padding:12px 10px;cursor:pointer;transition:all 0.25s;text-align:center;}
+.rc:hover{border-color:rgba(77,217,122,0.6);background:rgba(34,145,63,0.2);}
+.rc.sel{border-color:#4dd97a;background:rgba(34,145,63,0.3);}
+.rc .rfrom{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;color:#fff;}
+.rc .rarr{font-size:14px;color:#4dd97a;margin:2px 0;}
+.rc .rsub{font-size:10px;color:rgba(255,255,255,0.4);}
+.rc .rpr{font-size:12px;font-weight:600;color:#4dd97a;font-family:'Rajdhani',sans-serif;margin-top:4px;}
+.fgroup{margin-bottom:10px;}
+.flbl{font-size:11px;color:rgba(255,255,255,0.5);font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;display:block;}
+input,select{width:100%;padding:9px 12px;font-size:14px;font-family:'Nunito',sans-serif;background:rgba(0,0,0,0.4);border:1px solid rgba(45,189,85,0.3);border-radius:8px;color:#fff;outline:none;transition:border 0.2s;}
+input:focus{border-color:#4dd97a;}
+input::placeholder{color:rgba(255,255,255,0.3);}
+input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightness(0.6);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* BUS SEAT MAP */
+.bus-shell{background:rgba(0,0,0,0.5);border:1px solid rgba(45,189,85,0.25);border-radius:12px;padding:1rem;margin-bottom:1rem;}
+.bus-nose{text-align:center;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:600;letter-spacing:2px;color:#4dd97a;border-bottom:2px solid rgba(45,189,85,0.4);padding-bottom:8px;margin-bottom:10px;text-transform:uppercase;}
+.bus-body{display:flex;gap:0;max-width:220px;margin:0 auto;}
+.col-left{display:flex;flex-direction:column;gap:5px;width:52px;}
+.col-aisle{width:20px;display:flex;align-items:center;justify-content:center;}
+.col-right{display:flex;flex-direction:column;gap:5px;width:28px;}
+.aisle-label{writing-mode:vertical-rl;font-size:9px;color:rgba(255,255,255,0.2);letter-spacing:1px;font-family:'Rajdhani',sans-serif;text-transform:uppercase;}
+.seat{width:100%;height:34px;border:1px solid rgba(45,189,85,0.3);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;font-family:'Rajdhani',sans-serif;cursor:pointer;color:rgba(255,255,255,0.6);background:rgba(0,0,0,0.3);transition:all 0.2s;}
+.seat:hover:not(.booked){border-color:#4dd97a;color:#fff;transform:scale(1.06);}
+.seat.booked{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.2);cursor:not-allowed;border-color:rgba(255,255,255,0.08);}
+.seat.selected{background:#22913f;border-color:#4dd97a;color:#fff;box-shadow:0 0 8px rgba(45,189,85,0.4);}
+.seat-pair{display:flex;gap:5px;}
+.seat-pair .seat{flex:1;}
+.bus-tail{border-top:2px solid rgba(45,189,85,0.4);margin-top:10px;padding-top:8px;}
+.sleeper-row{display:flex;gap:8px;max-width:220px;margin:0 auto;}
+.sleeper-row .seat{flex:1;height:52px;border-radius:8px;font-size:9px;flex-direction:column;gap:2px;}
+.sleeper-icon{font-size:14px;line-height:1;}
+.type-tag{font-size:8px;color:#4dd97a;font-family:'Rajdhani',sans-serif;letter-spacing:1px;}
+.seat-legend{display:flex;gap:14px;font-size:10px;color:rgba(255,255,255,0.4);margin:10px 0 0;justify-content:center;font-family:'Rajdhani',sans-serif;letter-spacing:1px;text-transform:uppercase;flex-wrap:wrap;}
+.ldot{width:12px;height:12px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:middle;}
+
+.sel-bar{background:rgba(0,0,0,0.4);border:1px solid rgba(45,189,85,0.25);border-radius:8px;padding:10px 14px;font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:10px;min-height:38px;}
+.total-row{display:flex;justify-content:space-between;align-items:center;background:rgba(34,145,63,0.15);border:1px solid rgba(45,189,85,0.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;}
+.total-row span:first-child{font-size:12px;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.5);}
+.total-row span:last-child{font-size:20px;font-weight:700;font-family:'Rajdhani',sans-serif;color:#4dd97a;}
+.btn{width:100%;padding:13px;border:none;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;position:relative;overflow:hidden;}
+.btn-green{background:#22913f;color:#fff;}
+.btn-green:hover{background:#2dbd55;transform:translateY(-1px);}
+.btn-ghost{background:rgba(0,0,0,0.3);border:1px solid rgba(45,189,85,0.25);color:rgba(255,255,255,0.5);margin-top:8px;}
+.btn-ghost:hover{border-color:rgba(77,217,122,0.5);color:#fff;}
+.err{color:#f0997b;font-size:12px;margin-bottom:8px;font-family:'Rajdhani',sans-serif;font-weight:600;}
+
+/* SUMMARY & CONFIRM */
+.summary-card{background:rgba(0,0,0,0.5);border:1px solid rgba(45,189,85,0.25);border-radius:12px;overflow:hidden;margin-bottom:1rem;}
+.summary-head{background:rgba(34,145,63,0.3);padding:10px 16px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:#4dd97a;letter-spacing:1px;text-transform:uppercase;}
+.summary-row{display:flex;justify-content:space-between;padding:8px 16px;border-bottom:1px solid rgba(45,189,85,0.1);font-size:13px;}
+.summary-row:last-child{border-bottom:none;}
+.summary-row span:first-child{color:rgba(255,255,255,0.45);}
+.summary-row span:last-child{color:#fff;font-weight:500;}
+.summary-row.tl span:last-child{color:#4dd97a;font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;}
+.qr-wrap{background:rgba(0,0,0,0.5);border:1px solid rgba(45,189,85,0.25);border-radius:12px;padding:1rem;text-align:center;margin-bottom:1rem;}
+.qr-ttl{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#4dd97a;margin-bottom:8px;}
+.qr-img{width:130px;height:130px;border-radius:8px;border:2px solid rgba(45,189,85,0.4);}
+.qr-acc{font-size:11px;color:rgba(255,255,255,0.35);margin-top:5px;}
+.success-wrap{text-align:center;padding:1rem 0;}
+.success-icon{width:64px;height:64px;background:rgba(34,145,63,0.25);border:2px solid #4dd97a;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:28px;color:#4dd97a;animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;}
+@keyframes popIn{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}
+.success-title{font-family:'Rajdhani',sans-serif;font-size:26px;font-weight:700;color:#fff;margin-bottom:6px;}
+.success-sub{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.6;margin-bottom:1.2rem;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="bg-layer">
+    <!-- REPLACE src below with your actual bus image path -->
+    <img class="bg-img" src="backgound.jpg" alt="Sambriddhi Air Bus" onerror="this.style.display='none'">
+    <div class="speed-lines">
+      <div class="sline"></div><div class="sline"></div><div class="sline"></div>
+      <div class="sline"></div><div class="sline"></div>
+    </div>
+    <div class="green-glow"></div>
+    <div class="particles" id="particles"></div>
+  </div>
+
+  <div class="content">
+    <div class="header">
+      <div class="logo-badge">
+        <div class="logo-dot"></div>
+        <span class="logo-text">Live Booking</span>
+      </div>
+      <div class="brand-name">Sambriddhi <span>Air</span></div>
+      <div class="brand-sub">Dharan · Itahari · Pokhara</div>
+      <div class="price-pill">AC Deluxe — Rs. 2,500 / seat</div>
+    </div>
+
+    <div class="steps">
+      <div class="step active" id="s1">1 Route</div>
+      <div class="step" id="s2">2 Seats</div>
+      <div class="step" id="s3">3 Details</div>
+      <div class="step" id="s4">4 Confirm</div>
+    </div>
+
+    <!-- STEP 1: Route -->
+    <div class="panel active" id="p1">
+      <div class="sec-label">Choose your route</div>
+      <div class="routes">
+        <div class="rc sel" onclick="selRoute(this,'Dharan','Pokhara')">
+          <div class="rfrom">Dharan</div><div class="rarr">↓</div><div class="rfrom">Pokhara</div>
+          <div class="rsub">Daily 7:00 AM</div><div class="rpr">Rs. 2,500</div>
+        </div>
+        <div class="rc" onclick="selRoute(this,'Pokhara','Dharan')">
+          <div class="rfrom">Pokhara</div><div class="rarr">↓</div><div class="rfrom">Dharan</div>
+          <div class="rsub">Daily 7:00 AM</div><div class="rpr">Rs. 2,500</div>
+        </div>
+        <div class="rc" onclick="selRoute(this,'Itahari','Pokhara')">
+          <div class="rfrom">Itahari</div><div class="rarr">↓</div><div class="rfrom">Pokhara</div>
+          <div class="rsub">Daily 6:30 AM</div><div class="rpr">Rs. 2,500</div>
+        </div>
+      </div>
+      <div class="fgroup">
+        <label class="flbl">Travel date</label>
+        <input type="date" id="travel-date">
+      </div>
+      <div id="p1e" class="err" style="display:none">Please select a travel date.</div>
+      <button class="btn btn-green" onclick="goStep(2)">Next: Choose Seats →</button>
+    </div>
+
+    <!-- STEP 2: Seat Map -->
+    <div class="panel" id="p2">
+      <div class="bus-shell">
+        <div class="bus-nose">▲ Driver / Front</div>
+        <div class="bus-body" id="bus-body"></div>
+        <div class="bus-tail">
+          <div style="text-align:center;font-family:Rajdhani,sans-serif;font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:2px;margin-bottom:6px;text-transform:uppercase;">Sleeper Berths</div>
+          <div class="sleeper-row" id="sleeper-row"></div>
+        </div>
+        <div class="seat-legend">
+          <span><span class="ldot" style="background:rgba(0,0,0,0.3);border:1px solid rgba(45,189,85,0.3);"></span>Free</span>
+          <span><span class="ldot" style="background:#22913f;"></span>Selected</span>
+          <span><span class="ldot" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);"></span>Booked</span>
+          <span><span class="ldot" style="background:rgba(0,0,0,0.3);border:1px solid rgba(77,217,122,0.5);height:18px;border-radius:5px;"></span>Sleeper</span>
+        </div>
+      </div>
+      <div class="sel-bar" id="sel-bar">No seats selected</div>
+      <div class="total-row"><span>Total</span><span id="seat-total">Rs. 0</span></div>
+      <div id="p2e" class="err" style="display:none">Please select at least one seat.</div>
+      <button class="btn btn-green" onclick="goStep(3)">Next: Your Details →</button>
+      <button class="btn btn-ghost" onclick="goStep(1)">← Back</button>
+    </div>
+
+    <!-- STEP 3: Passenger Details -->
+    <div class="panel" id="p3">
+      <div class="sec-label">Passenger details</div>
+      <div class="form-row" style="margin-bottom:10px;">
+        <div class="fgroup">
+          <label class="flbl">Full name</label>
+          <input type="text" id="pax-name" placeholder="Your name">
+        </div>
+        <div class="fgroup">
+          <label class="flbl">Phone</label>
+          <input type="tel" id="pax-phone" placeholder="98XXXXXXXX">
+        </div>
+      </div>
+      <div class="fgroup">
+        <label class="flbl">Email</label>
+        <input type="email" id="pax-email" placeholder="your@email.com">
+      </div>
+      <div id="p3e" class="err" style="display:none">Please fill all fields.</div>
+      <button class="btn btn-green" onclick="goStep(4)">Review Booking →</button>
+      <button class="btn btn-ghost" onclick="goStep(2)">← Back</button>
+    </div>
+
+    <!-- STEP 4: Confirm -->
+    <div class="panel" id="p4">
+      <div id="review-view">
+        <div class="sec-label">Booking summary</div>
+        <div class="summary-card">
+          <div class="summary-head">Trip Details</div>
+          <div id="sum-rows"></div>
+        </div>
+        <div class="qr-wrap">
+          <div class="qr-ttl">Pay via QR — Siddhartha Bank</div>
+          <!-- REPLACE src below with your actual QR image path -->
+          <img class="qr-img" src="qr_jpg.png" alt="Payment QR" onerror="this.alt='QR image not found'">
+          <div class="qr-acc">Samir Ghimire — Acc: 55510731797</div>
+        </div>
+        <button class="btn btn-green" id="confirm-btn" onclick="confirmBooking()">Confirm &amp; Send Booking</button>
+        <button class="btn btn-ghost" onclick="goStep(3)">← Back</button>
+      </div>
+      <div id="success-view" style="display:none;">
+        <div class="success-wrap">
+          <div class="success-icon">✓</div>
+          <div class="success-title">Booking Confirmed!</div>
+          <div class="success-sub" id="success-sub"></div>
+          <div class="summary-card" style="text-align:left;">
+            <div class="summary-head">Your Ticket</div>
+            <div id="success-rows"></div>
+          </div>
+          <div class="qr-wrap">
+            <div class="qr-ttl">Scan to pay — Siddhartha Bank</div>
+            <img class="qr-img" src="qr_jpg.png" alt="Payment QR">
+            <div class="qr-acc">Samir Ghimire — Acc: 55510731797</div>
+          </div>
+          <button class="btn btn-ghost" onclick="resetAll()">Book Another Ticket</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /app -->
+
+<script>
+// ============================================================
+// CONFIG — edit these values as needed
+// ============================================================
+const PRICE = 2500;
+const BOOKED_SEATS = [3, 8, 14];     // seat numbers already sold (regular seats)
+const BOOKED_SLEEPERS = [];           // e.g. ['SL1'] if sleeper 1 is sold
+const OWNER_EMAIL = 'sambriddhiairbus@gmail.com';
+// ============================================================
+
+let route = { from: 'Dharan', to: 'Pokhara' };
+let selSeats = [];
+let tDate = '';
+
+// Animated particles
+(function mkParticles() {
+  const c = document.getElementById('particles');
+  for (let i = 0; i < 18; i++) {
+    const d = document.createElement('div');
+    d.style.cssText = [
+      'position:absolute',
+      `width:${Math.random() * 3 + 1}px`,
+      `height:${Math.random() * 3 + 1}px`,
+      'background:#4dd97a',
+      'border-radius:50%',
+      `left:${Math.random() * 100}%`,
+      'bottom:-10px',
+      `animation:float ${Math.random() * 8 + 5}s linear ${Math.random() * 5}s infinite`,
+      `opacity:${Math.random() * 0.5 + 0.2}`
+    ].join(';');
+    c.appendChild(d);
+  }
+})();
+
+// Set min date to today
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('travel-date').min = today;
+
+// Route selection
+function selRoute(el, f, t) {
+  document.querySelectorAll('.rc').forEach(c => c.classList.remove('sel'));
+  el.classList.add('sel');
+  route = { from: f, to: t };
+}
+
+// Build 2x1 seat map + 2 sleepers at back
+function buildBus() {
+  const body = document.getElementById('bus-body');
+  body.innerHTML = '';
+
+  const leftCol = document.createElement('div');
+  leftCol.className = 'col-left';
+
+  const aisleCol = document.createElement('div');
+  aisleCol.className = 'col-aisle';
+  const aisleLabel = document.createElement('div');
+  aisleLabel.className = 'aisle-label';
+  aisleLabel.textContent = 'AISLE';
+  aisleCol.appendChild(aisleLabel);
+
+  const rightCol = document.createElement('div');
+  rightCol.className = 'col-right';
+
+  // 9 rows: left side seats 1-18 (pairs), right side seats 19-27 (singles)
+  for (let row = 0; row < 9; row++) {
+    const leftA = row * 2 + 1;
+    const leftB = row * 2 + 2;
+    const rightC = row + 19;
+
+    // Left pair
+    const pair = document.createElement('div');
+    pair.className = 'seat-pair';
+    pair.appendChild(makeSeat(leftA));
+    pair.appendChild(makeSeat(leftB));
+    leftCol.appendChild(pair);
+
+    // Right single
+    rightCol.appendChild(makeSeat(rightC));
+  }
+
+  body.appendChild(leftCol);
+  body.appendChild(aisleCol);
+  body.appendChild(rightCol);
+
+  // Sleeper berths
+  const sleeperRow = document.getElementById('sleeper-row');
+  sleeperRow.innerHTML = '';
+  for (let s = 1; s <= 2; s++) {
+    const id = 'SL' + s;
+    const el = document.createElement('div');
+    const isBooked = BOOKED_SLEEPERS.includes(id);
+    const isSel = selSeats.includes(id);
+    el.className = 'seat' + (isBooked ? ' booked' : isSel ? ' selected' : '');
+    el.innerHTML = `<span class="sleeper-icon">&#128716;</span><span>${id}</span><span class="type-tag">SLEEPER</span>`;
+    el.style.display = 'flex';
+    if (!isBooked) el.onclick = () => toggleSeat(el, id);
+    sleeperRow.appendChild(el);
+  }
+
+  updateSelBar();
+}
+
+function makeSeat(id) {
+  const el = document.createElement('div');
+  const isBooked = BOOKED_SEATS.includes(id);
+  const isSel = selSeats.includes(id);
+  el.className = 'seat' + (isBooked ? ' booked' : isSel ? ' selected' : '');
+  el.textContent = id;
+  if (!isBooked) el.onclick = () => toggleSeat(el, id);
+  return el;
+}
+
+function toggleSeat(el, id) {
+  if (selSeats.includes(id)) {
+    selSeats = selSeats.filter(s => s !== id);
+    el.classList.remove('selected');
+  } else {
+    selSeats.push(id);
+    el.classList.add('selected');
+  }
+  updateSelBar();
+}
+
+function sortSeats(arr) {
+  return [...arr].sort((a, b) => {
+    const na = typeof a === 'string' ? 999 + parseInt(a.replace('SL', '')) : a;
+    const nb = typeof b === 'string' ? 999 + parseInt(b.replace('SL', '')) : b;
+    return na - nb;
+  });
+}
+
+function updateSelBar() {
+  const b = document.getElementById('sel-bar');
+  const t = document.getElementById('seat-total');
+  if (!selSeats.length) {
+    b.textContent = 'No seats selected';
+    b.style.color = 'rgba(255,255,255,0.35)';
+  } else {
+    b.style.color = '#fff';
+    b.innerHTML = '<span style="color:#4dd97a;font-family:Rajdhani,sans-serif;font-weight:600;">Seats: </span>' + sortSeats(selSeats).join(', ');
+  }
+  t.textContent = 'Rs. ' + (selSeats.length * PRICE).toLocaleString();
+}
+
+function rowH(label, val, cls) {
+  return `<div class="summary-row${cls || ''}"><span>${label}</span><span>${val}</span></div>`;
+}
+
+function buildSummary(targetId) {
+  const name  = document.getElementById('pax-name').value.trim();
+  const phone = document.getElementById('pax-phone').value.trim();
+  const email = document.getElementById('pax-email').value.trim();
+  const fd    = new Date(tDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const seats = sortSeats(selSeats).join(', ');
+  const total = 'Rs. ' + (selSeats.length * PRICE).toLocaleString();
+  document.getElementById(targetId).innerHTML =
+    rowH('Passenger', name) +
+    rowH('Phone', phone) +
+    rowH('Email', email) +
+    rowH('Route', route.from + ' → ' + route.to) +
+    rowH('Date', fd) +
+    rowH('Seats', seats) +
+    rowH('Total', total, ' tl');
+}
+
+// Step navigation
+function goStep(n) {
+  if (n === 2) {
+    const d = document.getElementById('travel-date').value;
+    if (!d) { document.getElementById('p1e').style.display = 'block'; return; }
+    document.getElementById('p1e').style.display = 'none';
+    tDate = d;
+    buildBus();
+  }
+  if (n === 3) {
+    if (!selSeats.length) { document.getElementById('p2e').style.display = 'block'; return; }
+    document.getElementById('p2e').style.display = 'none';
+  }
+  if (n === 4) {
+    const name  = document.getElementById('pax-name').value.trim();
+    const phone = document.getElementById('pax-phone').value.trim();
+    const email = document.getElementById('pax-email').value.trim();
+    if (!name || !phone || !email) { document.getElementById('p3e').style.display = 'block'; return; }
+    document.getElementById('p3e').style.display = 'none';
+    buildSummary('sum-rows');
+  }
+  [1, 2, 3, 4].forEach(i => {
+    document.getElementById('p' + i).classList.toggle('active', i === n);
+    const s = document.getElementById('s' + i);
+    s.className = 'step' + (i === n ? ' active' : i < n ? ' done' : '');
+  });
+}
+
+// Confirm booking — opens Gmail with pre-filled email
+function confirmBooking() {
+  const name  = document.getElementById('pax-name').value.trim();
+  const phone = document.getElementById('pax-phone').value.trim();
+  const email = document.getElementById('pax-email').value.trim();
+  const fd    = new Date(tDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const seats = sortSeats(selSeats).join(', ');
+  const total = 'Rs. ' + (selSeats.length * PRICE).toLocaleString();
+
+  const subject = `New Booking: ${name} | ${route.from} to ${route.to} | ${fd}`;
+  const body =
+    `NEW BUS BOOKING — Sambriddhi Air Bus\n\n` +
+    `Passenger : ${name}\n` +
+    `Phone     : ${phone}\n` +
+    `Email     : ${email}\n` +
+    `Route     : ${route.from} → ${route.to}\n` +
+    `Date      : ${fd}\n` +
+    `Seats     : ${seats}\n` +
+    `Total     : ${total}\n\n` +
+    `Please confirm this booking and send ticket to passenger.`;
+
+  buildSummary('success-rows');
+  document.getElementById('success-sub').innerHTML =
+    `Thank you <strong style="color:#4dd97a">${name}</strong>! ` +
+    `Seats <strong style="color:#4dd97a">${seats}</strong> reserved for ${fd}.<br>` +
+    `<span style="font-size:12px;opacity:0.6">Screenshot this page as your reference. Complete payment via QR below.</span>`;
+
+  document.getElementById('review-view').style.display = 'none';
+  document.getElementById('success-view').style.display = 'block';
+
+  // Opens mail client with pre-filled booking email to owner
+  window.location.href = `mailto:${OWNER_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+}
+
+function resetAll() {
+  selSeats = [];
+  tDate = '';
+  ['pax-name', 'pax-phone', 'pax-email', 'travel-date'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('review-view').style.display = 'block';
+  document.getElementById('success-view').style.display = 'none';
+  document.getElementById('confirm-btn').disabled = false;
+  goStep(1);
+}
+</script>
+</body>
 </html>
