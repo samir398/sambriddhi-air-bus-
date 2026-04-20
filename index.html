@@ -6,9 +6,9 @@
 <title>Sambriddhi Air Bus — Book Your Ticket</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-:root{--g1:#1a6b2f;--g2:#22913f;--g3:#2dbd55;--g4:#4dd97a;}
 body{font-family:'Nunito',sans-serif;background:#0a1a0e;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:20px;}
 .app{position:relative;overflow:hidden;border-radius:16px;width:100%;max-width:480px;min-height:600px;}
 .bg-layer{position:absolute;inset:0;overflow:hidden;}
@@ -24,7 +24,7 @@ body{font-family:'Nunito',sans-serif;background:#0a1a0e;min-height:100vh;display
 .green-glow{position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:600px;height:300px;background:radial-gradient(ellipse,rgba(45,189,85,0.18) 0%,transparent 70%);animation:pulse 3s ease-in-out infinite;}
 @keyframes pulse{0%,100%{opacity:0.6;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.1)}}
 .particles{position:absolute;inset:0;overflow:hidden;}
-@keyframes float{0%{transform:translateY(0) translateX(0);opacity:0}10%{opacity:1}90%{opacity:0.5}100%{transform:translateY(-600px) translateX(20px);opacity:0}}
+@keyframes float{0%{transform:translateY(0);opacity:0}10%{opacity:1}90%{opacity:0.5}100%{transform:translateY(-600px) translateX(20px);opacity:0}}
 .content{position:relative;z-index:2;padding:1.5rem;}
 .header{text-align:center;margin-bottom:1.5rem;animation:slideDown 0.6s ease both;}
 @keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
@@ -67,7 +67,8 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
 .aisle-label{writing-mode:vertical-rl;font-size:9px;color:rgba(255,255,255,0.2);letter-spacing:1px;font-family:'Rajdhani',sans-serif;text-transform:uppercase;}
 .seat{width:100%;height:34px;border:1px solid rgba(45,189,85,0.3);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;font-family:'Rajdhani',sans-serif;cursor:pointer;color:rgba(255,255,255,0.6);background:rgba(0,0,0,0.3);transition:all 0.2s;}
 .seat:hover:not(.booked){border-color:#4dd97a;color:#fff;transform:scale(1.06);}
-.seat.booked{background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.2);cursor:not-allowed;border-color:rgba(255,255,255,0.08);}
+.seat.booked{background:rgba(255,80,80,0.12);color:rgba(255,120,120,0.5);cursor:not-allowed;border-color:rgba(255,80,80,0.2);}
+.seat.admin-blocked{background:rgba(200,100,0,0.15);color:rgba(255,160,60,0.6);cursor:not-allowed;border-color:rgba(200,130,0,0.3);}
 .seat.selected{background:#22913f;border-color:#4dd97a;color:#fff;box-shadow:0 0 8px rgba(45,189,85,0.4);}
 .seat-pair{display:flex;gap:5px;}
 .seat-pair .seat{flex:1;}
@@ -76,7 +77,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
 .sleeper-row .seat{flex:1;height:52px;border-radius:8px;font-size:9px;flex-direction:column;gap:2px;}
 .sleeper-icon{font-size:14px;line-height:1;}
 .type-tag{font-size:8px;color:#4dd97a;font-family:'Rajdhani',sans-serif;letter-spacing:1px;}
-.seat-legend{display:flex;gap:14px;font-size:10px;color:rgba(255,255,255,0.4);margin:10px 0 0;justify-content:center;font-family:'Rajdhani',sans-serif;letter-spacing:1px;text-transform:uppercase;flex-wrap:wrap;}
+.seat-legend{display:flex;gap:10px;font-size:10px;color:rgba(255,255,255,0.4);margin:10px 0 0;justify-content:center;font-family:'Rajdhani',sans-serif;letter-spacing:1px;text-transform:uppercase;flex-wrap:wrap;}
 .ldot{width:12px;height:12px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:middle;}
 .sel-bar{background:rgba(0,0,0,0.4);border:1px solid rgba(45,189,85,0.25);border-radius:8px;padding:10px 14px;font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:10px;min-height:38px;}
 .total-row{display:flex;justify-content:space-between;align-items:center;background:rgba(34,145,63,0.15);border:1px solid rgba(45,189,85,0.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;}
@@ -85,9 +86,11 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
 .btn{width:100%;padding:13px;border:none;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
 .btn-green{background:#22913f;color:#fff;}
 .btn-green:hover{background:#2dbd55;transform:translateY(-1px);}
-.btn-green:disabled{background:#1a5a2a;opacity:0.6;cursor:not-allowed;transform:none;}
+.btn-green:disabled{background:#1a4a28;color:rgba(255,255,255,0.4);cursor:not-allowed;transform:none;}
 .btn-ghost{background:rgba(0,0,0,0.3);border:1px solid rgba(45,189,85,0.25);color:rgba(255,255,255,0.5);margin-top:8px;}
 .btn-ghost:hover{border-color:rgba(77,217,122,0.5);color:#fff;}
+.btn-wa{width:100%;padding:13px;border:none;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;background:#25d366;color:#fff;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;}
+.btn-wa:hover{background:#1ebe5a;}
 .err{color:#f0997b;font-size:12px;margin-bottom:8px;font-family:'Rajdhani',sans-serif;font-weight:600;}
 .summary-card{background:rgba(0,0,0,0.5);border:1px solid rgba(45,189,85,0.25);border-radius:12px;overflow:hidden;margin-bottom:1rem;}
 .summary-head{background:rgba(34,145,63,0.3);padding:10px 16px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:#4dd97a;letter-spacing:1px;text-transform:uppercase;}
@@ -104,31 +107,31 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
 .success-icon{width:64px;height:64px;background:rgba(34,145,63,0.25);border:2px solid #4dd97a;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:28px;color:#4dd97a;animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;}
 @keyframes popIn{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}
 .success-title{font-family:'Rajdhani',sans-serif;font-size:26px;font-weight:700;color:#fff;margin-bottom:6px;}
-.success-sub{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.6;margin-bottom:1.2rem;}
-/* Loading overlay */
-.loading-ov{position:absolute;inset:0;background:rgba(6,10,6,0.82);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;border-radius:16px;}
+.success-sub{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.6;margin-bottom:1rem;}
+.notif-box{background:rgba(0,0,0,0.35);border:1px solid rgba(45,189,85,0.18);border-radius:10px;padding:10px 14px;margin-bottom:12px;}
+.notif-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;color:rgba(255,255,255,0.45);}
+.notif-row.ok{color:#4dd97a;} .notif-row.fail{color:#f0997b;}
+.ndot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;}
+.lov{position:absolute;inset:0;background:rgba(5,12,6,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:30;border-radius:16px;}
 .spinner{width:38px;height:38px;border:3px solid rgba(77,217,122,0.15);border-top-color:#4dd97a;border-radius:50%;animation:spin 0.75s linear infinite;margin-bottom:12px;}
 @keyframes spin{to{transform:rotate(360deg)}}
-.loading-msg{font-family:'Rajdhani',sans-serif;font-size:13px;color:#4dd97a;letter-spacing:1px;text-transform:uppercase;}
+.lov-msg{font-family:'Rajdhani',sans-serif;font-size:13px;color:#4dd97a;letter-spacing:1px;text-transform:uppercase;}
+.lov-sub{font-size:11px;color:rgba(255,255,255,0.3);margin-top:6px;font-family:'Nunito',sans-serif;text-align:center;max-width:260px;}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="bg-layer">
     <img class="bg-img" src="backgound.jpg" alt="" onerror="this.style.display='none'">
-    <div class="speed-lines">
-      <div class="sline"></div><div class="sline"></div><div class="sline"></div><div class="sline"></div><div class="sline"></div>
-    </div>
+    <div class="speed-lines"><div class="sline"></div><div class="sline"></div><div class="sline"></div><div class="sline"></div><div class="sline"></div></div>
     <div class="green-glow"></div>
     <div class="particles" id="particles"></div>
   </div>
-
-  <!-- Loading overlay -->
-  <div class="loading-ov" id="lov" style="display:none">
+  <div class="lov" id="lov" style="display:none">
     <div class="spinner"></div>
-    <div class="loading-msg" id="lov-msg">Loading…</div>
+    <div class="lov-msg" id="lov-msg">Loading…</div>
+    <div class="lov-sub" id="lov-sub"></div>
   </div>
-
   <div class="content">
     <div class="header">
       <div class="logo-badge"><div class="logo-dot"></div><span class="logo-text">Live Booking</span></div>
@@ -136,7 +139,6 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
       <div class="brand-sub">Dharan · Itahari · Pokhara</div>
       <div class="price-pill">AC Deluxe — Rs. 2,500 / seat</div>
     </div>
-
     <div class="steps">
       <div class="step active" id="s1">1 Route</div>
       <div class="step" id="s2">2 Seats</div>
@@ -148,23 +150,11 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
     <div class="panel active" id="p1">
       <div class="sec-label">Choose your route</div>
       <div class="routes">
-        <div class="rc sel" onclick="selRoute(this,'Dharan','Pokhara')">
-          <div class="rfrom">Dharan</div><div class="rarr">↓</div><div class="rfrom">Pokhara</div>
-          <div class="rsub">Daily 7:00 AM</div><div class="rpr">Rs. 2,500</div>
-        </div>
-        <div class="rc" onclick="selRoute(this,'Pokhara','Dharan')">
-          <div class="rfrom">Pokhara</div><div class="rarr">↓</div><div class="rfrom">Dharan</div>
-          <div class="rsub">Daily 7:00 AM</div><div class="rpr">Rs. 2,500</div>
-        </div>
-        <div class="rc" onclick="selRoute(this,'Itahari','Pokhara')">
-          <div class="rfrom">Itahari</div><div class="rarr">↓</div><div class="rfrom">Pokhara</div>
-          <div class="rsub">Daily 6:30 AM</div><div class="rpr">Rs. 2,500</div>
-        </div>
+        <div class="rc sel" onclick="selRoute(this,'Dharan','Pokhara')"><div class="rfrom">Dharan</div><div class="rarr">↓</div><div class="rfrom">Pokhara</div><div class="rsub">Daily 7:00 AM</div><div class="rpr">Rs. 2,500</div></div>
+        <div class="rc" onclick="selRoute(this,'Pokhara','Dharan')"><div class="rfrom">Pokhara</div><div class="rarr">↓</div><div class="rfrom">Dharan</div><div class="rsub">Daily 7:00 AM</div><div class="rpr">Rs. 2,500</div></div>
+        <div class="rc" onclick="selRoute(this,'Itahari','Pokhara')"><div class="rfrom">Itahari</div><div class="rarr">↓</div><div class="rfrom">Pokhara</div><div class="rsub">Daily 6:30 AM</div><div class="rpr">Rs. 2,500</div></div>
       </div>
-      <div class="fgroup">
-        <label class="flbl">Travel date</label>
-        <input type="date" id="travel-date">
-      </div>
+      <div class="fgroup"><label class="flbl">Travel date</label><input type="date" id="travel-date"></div>
       <div id="p1e" class="err" style="display:none">Please select a travel date.</div>
       <button class="btn btn-green" onclick="goStep(2)">Next: Choose Seats →</button>
     </div>
@@ -181,7 +171,8 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
         <div class="seat-legend">
           <span><span class="ldot" style="background:rgba(0,0,0,0.3);border:1px solid rgba(45,189,85,0.3);"></span>Free</span>
           <span><span class="ldot" style="background:#22913f;"></span>Selected</span>
-          <span><span class="ldot" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.08);"></span>Booked</span>
+          <span><span class="ldot" style="background:rgba(255,80,80,0.12);border:1px solid rgba(255,80,80,0.2);"></span>Booked</span>
+          <span><span class="ldot" style="background:rgba(200,100,0,0.15);border:1px solid rgba(200,130,0,0.3);"></span>Reserved</span>
         </div>
       </div>
       <div class="sel-bar" id="sel-bar">No seats selected</div>
@@ -198,8 +189,8 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
         <div class="fgroup"><label class="flbl">Full name</label><input type="text" id="pax-name" placeholder="Your name"></div>
         <div class="fgroup"><label class="flbl">Phone</label><input type="tel" id="pax-phone" placeholder="98XXXXXXXX"></div>
       </div>
-      <div class="fgroup"><label class="flbl">Email</label><input type="email" id="pax-email" placeholder="your@email.com"></div>
-      <div id="p3e" class="err" style="display:none">Please fill all fields.</div>
+      <div class="fgroup"><label class="flbl">Email (optional)</label><input type="email" id="pax-email" placeholder="your@email.com"></div>
+      <div id="p3e" class="err" style="display:none">Please fill your name and phone number.</div>
       <button class="btn btn-green" onclick="goStep(4)">Review Booking →</button>
       <button class="btn btn-ghost" onclick="goStep(2)">← Back</button>
     </div>
@@ -208,10 +199,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
     <div class="panel" id="p4">
       <div id="review-view">
         <div class="sec-label">Booking summary</div>
-        <div class="summary-card">
-          <div class="summary-head">Trip Details</div>
-          <div id="sum-rows"></div>
-        </div>
+        <div class="summary-card"><div class="summary-head">Trip Details</div><div id="sum-rows"></div></div>
         <div class="qr-wrap">
           <div class="qr-ttl">Pay via QR — Siddhartha Bank</div>
           <img class="qr-img" src="esewa_qr.jpg" alt="Payment QR" onerror="this.alt='QR not found'">
@@ -225,16 +213,21 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
           <div class="success-icon">✓</div>
           <div class="success-title">Booking Confirmed!</div>
           <div class="success-sub" id="success-sub"></div>
-          <div class="summary-card" style="text-align:left;">
-            <div class="summary-head">Your Ticket</div>
-            <div id="success-rows"></div>
+          <div class="notif-box">
+            <div class="notif-row" id="n-save"><div class="ndot"></div><span id="n-save-txt">Saving booking…</span></div>
+            <div class="notif-row" id="n-email"><div class="ndot"></div><span id="n-email-txt">Sending email notification…</span></div>
           </div>
+          <div class="summary-card" style="text-align:left;"><div class="summary-head">Your Ticket</div><div id="success-rows"></div></div>
           <div class="qr-wrap">
             <div class="qr-ttl">Scan to pay — Siddhartha Bank</div>
             <img class="qr-img" src="esewa_qr.jpg" alt="Payment QR">
             <div class="qr-acc">Samir Ghimire — Acc: 55510731797</div>
           </div>
-          <button class="btn btn-ghost" onclick="resetAll()">Book Another Ticket</button>
+          <a id="wa-btn" href="#" target="_blank" class="btn-wa">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            Notify via WhatsApp
+          </a>
+          <button class="btn btn-ghost" onclick="resetAll()" style="margin-top:8px;">Book Another Ticket</button>
         </div>
       </div>
     </div>
@@ -242,16 +235,20 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
 </div>
 
 <script>
-// ═══════════════════════════════════════════
-//  CONFIG  — edit these if needed
-// ═══════════════════════════════════════════
-const PRICE       = 2500;
-const OWNER_EMAIL = 'sambriddhiairbus@gmail.com';
-const MASTER_KEY  = '$2a$10$lM8iv375PzNB9kY.0H2Pn.R/2MzTafbZ8gtWgCHIGvMsw2np8NC7K';
-const ACCESS_KEY  = '$2a$10$Rq9teSheNL0xRMq7e0qB6.YGsp.L.Ql9fBpInwnRK9Km2UmYr1JNy';
-const BIN_NAME    = 'sambriddhi-bookings';
-const BIN_ID_KEY  = 'sambriddhi_bin_id';
-// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════════════
+//  CONFIG
+// ═══════════════════════════════════════════════════
+const PRICE        = 2500;
+const MASTER_KEY   = '$2a$10$lM8iv375PzNB9kY.0H2Pn.R/2MzTafbZ8gtWgCHIGvMsw2np8NC7K';
+const ACCESS_KEY   = '$2a$10$Rq9teSheNL0xRMq7e0qB6.YGsp.L.Ql9fBpInwnRK9Km2UmYr1JNy';
+const BIN_ID_KEY   = 'sambriddhi_bin_id';
+const EJS_KEY      = 'yeWZviSUglEyqIb8n';
+const EJS_SERVICES = ['service_aznnwaj','service_8hyu1sc'];
+const EJS_TEMPLATE = 'template_7u0dhdi';
+const WA_NUMBER    = '9779763255296'; // Nepal format
+// ═══════════════════════════════════════════════════
+
+emailjs.init(EJS_KEY);
 
 let route       = { from:'Dharan', to:'Pokhara' };
 let selSeats    = [];
@@ -259,7 +256,7 @@ let tDate       = '';
 let cachedBinId = localStorage.getItem(BIN_ID_KEY) || null;
 let allBookings = [];
 
-// ── Particles ──────────────────────────────
+// Particles
 (function(){
   const c=document.getElementById('particles');
   for(let i=0;i<18;i++){
@@ -273,64 +270,45 @@ let allBookings = [];
 })();
 document.getElementById('travel-date').min = new Date().toISOString().split('T')[0];
 
-// ── Loading ─────────────────────────────────
-function showLoad(msg){ document.getElementById('lov').style.display='flex'; document.getElementById('lov-msg').textContent=msg||'Loading…'; }
+// ── Loading ──────────────────────────────────────
+function showLoad(msg,sub){ document.getElementById('lov').style.display='flex'; document.getElementById('lov-msg').textContent=msg||'Loading…'; document.getElementById('lov-sub').textContent=sub||''; }
 function hideLoad(){ document.getElementById('lov').style.display='none'; }
 
-// ── JSONBin API ─────────────────────────────
+// ── JSONBin ──────────────────────────────────────
 async function getBinId(){
   if(cachedBinId) return cachedBinId;
-  const res = await fetch('https://api.jsonbin.io/v3/b',{
-    method:'POST',
-    headers:{'Content-Type':'application/json','X-Master-Key':MASTER_KEY,'X-Bin-Name':BIN_NAME,'X-Bin-Private':'true'},
-    body:JSON.stringify({bookings:[]})
-  });
-  if(!res.ok) throw new Error('Could not create storage bin');
-  const d = await res.json();
-  cachedBinId = d.metadata.id;
-  localStorage.setItem(BIN_ID_KEY, cachedBinId);
-  return cachedBinId;
+  const res=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',headers:{'Content-Type':'application/json','X-Master-Key':MASTER_KEY,'X-Bin-Name':'sambriddhi-bookings','X-Bin-Private':'true'},body:JSON.stringify({bookings:[]})});
+  const d=await res.json(); cachedBinId=d.metadata.id; localStorage.setItem(BIN_ID_KEY,cachedBinId); return cachedBinId;
 }
-
 async function fetchBookings(){
-  try {
-    const id  = await getBinId();
-    const res = await fetch(`https://api.jsonbin.io/v3/b/${id}/latest`,{
-      headers:{'X-Master-Key':MASTER_KEY,'X-Access-Key':ACCESS_KEY}
-    });
-    if(!res.ok) throw new Error('Fetch failed');
-    const d = await res.json();
-    allBookings = d.record.bookings || [];
-  } catch(e){ console.warn('fetchBookings error',e); allBookings=[]; }
+  try{ const id=await getBinId(); const res=await fetch(`https://api.jsonbin.io/v3/b/${id}/latest`,{headers:{'X-Master-Key':MASTER_KEY,'X-Access-Key':ACCESS_KEY}}); const d=await res.json(); allBookings=d.record.bookings||[]; }catch(e){ allBookings=[]; }
 }
-
 async function pushBookings(){
-  const id  = await getBinId();
-  const res = await fetch(`https://api.jsonbin.io/v3/b/${id}`,{
-    method:'PUT',
-    headers:{'Content-Type':'application/json','X-Master-Key':MASTER_KEY},
-    body:JSON.stringify({bookings:allBookings})
-  });
-  if(!res.ok) throw new Error('Push failed');
+  const id=await getBinId();
+  await fetch(`https://api.jsonbin.io/v3/b/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':MASTER_KEY},body:JSON.stringify({bookings:allBookings})});
 }
 
-// ── Seat availability ───────────────────────
-function bookedSet(routeStr, date){
-  const s=new Set();
+// ── Seat state helpers ───────────────────────────
+function getOccupiedSeats(routeStr, date){
+  const booked=new Set(), adminBlocked=new Set();
   allBookings.forEach(b=>{
-    if(b.route===routeStr && b.date===date && b.status!=='Cancelled')
-      b.seats.forEach(x=>s.add(String(x)));
+    if(b.route===routeStr && b.date===date && b.status!=='Cancelled'){
+      b.seats.forEach(s=>{
+        if(b.isAdminBlock) adminBlocked.add(String(s));
+        else booked.add(String(s));
+      });
+    }
   });
-  return s;
+  return {booked, adminBlocked};
 }
 
-// ── Build bus seat map ──────────────────────
+// ── Build seat map ────────────────────────────────
 async function buildBus(){
-  showLoad('Checking seat availability…');
+  showLoad('Checking seat availability…','Please wait');
   await fetchBookings();
   hideLoad();
   const routeStr=route.from+' → '+route.to;
-  const booked=bookedSet(routeStr,tDate);
+  const {booked,adminBlocked}=getOccupiedSeats(routeStr,tDate);
   const body=document.getElementById('bus-body'); body.innerHTML='';
   const lCol=document.createElement('div'); lCol.className='col-left';
   const aiCol=document.createElement('div'); aiCol.className='col-aisle';
@@ -339,30 +317,29 @@ async function buildBus(){
   for(let row=0;row<9;row++){
     const la=row*2+1,lb=row*2+2,rc=row+19;
     const pair=document.createElement('div'); pair.className='seat-pair';
-    pair.appendChild(mkSeat(la,booked)); pair.appendChild(mkSeat(lb,booked));
-    lCol.appendChild(pair);
-    rCol.appendChild(mkSeat(rc,booked));
+    pair.appendChild(mkSeat(la,booked,adminBlocked)); pair.appendChild(mkSeat(lb,booked,adminBlocked));
+    lCol.appendChild(pair); rCol.appendChild(mkSeat(rc,booked,adminBlocked));
   }
   body.appendChild(lCol); body.appendChild(aiCol); body.appendChild(rCol);
   const slRow=document.getElementById('sleeper-row'); slRow.innerHTML='';
   for(let s=1;s<=2;s++){
-    const id='SL'+s, el=document.createElement('div');
-    const isB=booked.has(id), isS=selSeats.includes(id);
-    el.className='seat'+(isB?' booked':isS?' selected':'');
+    const id='SL'+s,el=document.createElement('div');
+    const isB=booked.has(id),isA=adminBlocked.has(id),isS=selSeats.includes(id);
+    el.className='seat'+(isB?' booked':isA?' admin-blocked':isS?' selected':'');
     el.innerHTML=`<span class="sleeper-icon">&#128716;</span><span>${id}</span><span class="type-tag">SLEEPER</span>`;
     el.style.display='flex';
-    if(!isB) el.onclick=()=>toggleSeat(el,id);
+    if(!isB&&!isA) el.onclick=()=>toggleSeat(el,id);
     slRow.appendChild(el);
   }
   updateSelBar();
 }
 
-function mkSeat(id,booked){
+function mkSeat(id,booked,adminBlocked){
   const el=document.createElement('div');
-  const isB=booked.has(String(id)), isS=selSeats.includes(id);
-  el.className='seat'+(isB?' booked':isS?' selected':'');
+  const isB=booked.has(String(id)),isA=adminBlocked.has(String(id)),isS=selSeats.includes(id);
+  el.className='seat'+(isB?' booked':isA?' admin-blocked':isS?' selected':'');
   el.textContent=id;
-  if(!isB) el.onclick=()=>toggleSeat(el,id);
+  if(!isB&&!isA) el.onclick=()=>toggleSeat(el,id);
   return el;
 }
 
@@ -373,11 +350,7 @@ function toggleSeat(el,id){
 }
 
 function sortSeats(arr){
-  return [...arr].sort((a,b)=>{
-    const na=typeof a==='string'?999+parseInt(a.replace('SL','')):a;
-    const nb=typeof b==='string'?999+parseInt(b.replace('SL','')):b;
-    return na-nb;
-  });
+  return [...arr].sort((a,b)=>{ const na=typeof a==='string'?999+parseInt(a.replace('SL','')):a; const nb=typeof b==='string'?999+parseInt(b.replace('SL','')):b; return na-nb; });
 }
 
 function updateSelBar(){
@@ -394,46 +367,40 @@ function buildSummary(tid){
   const phone=document.getElementById('pax-phone').value.trim();
   const email=document.getElementById('pax-email').value.trim();
   const fd=new Date(tDate).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-  const seats=sortSeats(selSeats).join(', ');
-  const total='Rs. '+(selSeats.length*PRICE).toLocaleString();
   document.getElementById(tid).innerHTML=
-    rowH('Passenger',name)+rowH('Phone',phone)+rowH('Email',email)+
+    rowH('Passenger',name)+rowH('Phone',phone)+(email?rowH('Email',email):'')+
     rowH('Route',route.from+' → '+route.to)+rowH('Date',fd)+
-    rowH('Seats',seats)+rowH('Total',total,' tl');
+    rowH('Seats',sortSeats(selSeats).join(', '))+rowH('Total','Rs. '+(selSeats.length*PRICE).toLocaleString(),' tl');
 }
 
-function selRoute(el,f,t){
-  document.querySelectorAll('.rc').forEach(c=>c.classList.remove('sel'));
-  el.classList.add('sel'); route={from:f,to:t};
-}
+function selRoute(el,f,t){ document.querySelectorAll('.rc').forEach(c=>c.classList.remove('sel')); el.classList.add('sel'); route={from:f,to:t}; }
 
 async function goStep(n){
   if(n===2){
     const d=document.getElementById('travel-date').value;
     if(!d){ document.getElementById('p1e').style.display='block'; return; }
-    document.getElementById('p1e').style.display='none';
-    tDate=d; selSeats=[];
-    await buildBus();
+    document.getElementById('p1e').style.display='none'; tDate=d; selSeats=[]; await buildBus();
   }
-  if(n===3){
-    if(!selSeats.length){ document.getElementById('p2e').style.display='block'; return; }
-    document.getElementById('p2e').style.display='none';
-  }
+  if(n===3){ if(!selSeats.length){ document.getElementById('p2e').style.display='block'; return; } document.getElementById('p2e').style.display='none'; }
   if(n===4){
-    const name=document.getElementById('pax-name').value.trim();
-    const phone=document.getElementById('pax-phone').value.trim();
-    const email=document.getElementById('pax-email').value.trim();
-    if(!name||!phone||!email){ document.getElementById('p3e').style.display='block'; return; }
-    document.getElementById('p3e').style.display='none';
-    buildSummary('sum-rows');
+    const name=document.getElementById('pax-name').value.trim(), phone=document.getElementById('pax-phone').value.trim();
+    if(!name||!phone){ document.getElementById('p3e').style.display='block'; return; }
+    document.getElementById('p3e').style.display='none'; buildSummary('sum-rows');
   }
-  [1,2,3,4].forEach(i=>{
-    document.getElementById('p'+i).classList.toggle('active',i===n);
-    const s=document.getElementById('s'+i);
-    s.className='step'+(i===n?' active':i<n?' done':'');
-  });
+  [1,2,3,4].forEach(i=>{ document.getElementById('p'+i).classList.toggle('active',i===n); const s=document.getElementById('s'+i); s.className='step'+(i===n?' active':i<n?' done':''); });
 }
 
+// ── Notification helpers ──────────────────────────
+function setNotif(id,ok,txt){ const el=document.getElementById(id); el.className='notif-row '+(ok?'ok':'fail'); el.querySelector('span').textContent=txt; }
+
+async function sendEmailJS(params){
+  for(const svc of EJS_SERVICES){
+    try{ await emailjs.send(svc,EJS_TEMPLATE,params); return true; }catch(e){ console.warn('EJS failed',svc,e); }
+  }
+  return false;
+}
+
+// ── Confirm booking ───────────────────────────────
 async function confirmBooking(){
   const name=document.getElementById('pax-name').value.trim();
   const phone=document.getElementById('pax-phone').value.trim();
@@ -444,39 +411,33 @@ async function confirmBooking(){
   const routeStr=route.from+' → '+route.to;
   const refId='BK'+String(Date.now()).slice(-5);
 
-  const btn=document.getElementById('confirm-btn');
-  btn.disabled=true;
-  showLoad('Saving your booking…');
+  document.getElementById('confirm-btn').disabled=true;
+  showLoad('Saving your booking…','Just a moment');
 
-  try {
-    await fetchBookings(); // get latest first to avoid overwrite
-    allBookings.push({
-      id:refId, name, phone, email,
-      route:routeStr, date:tDate,
-      seats:sortSeats(selSeats),
-      status:'Pending',
-      notes:'Booked via website',
-      created:new Date().toISOString().split('T')[0]
-    });
-    await pushBookings();
-  } catch(e){
-    console.warn('Save error',e);
-    // still show success — email will reach admin
-  }
+  // 1. Save to JSONBin
+  let saveOk=false;
+  try{
+    await fetchBookings();
+    allBookings.push({id:refId,name,phone,email,route:routeStr,date:tDate,seats:sortSeats(selSeats),status:'Pending',notes:'Booked via website',isAdminBlock:false,created:new Date().toISOString().split('T')[0]});
+    await pushBookings(); saveOk=true;
+  }catch(e){ console.warn('Save error',e); }
 
+  // 2. Show success screen first
   hideLoad();
   buildSummary('success-rows');
-  document.getElementById('success-sub').innerHTML=
-    `Thank you <strong style="color:#4dd97a">${name}</strong>! `+
-    `Seats <strong style="color:#4dd97a">${seats}</strong> reserved for ${fd}.<br>`+
-    `<span style="font-size:12px;opacity:0.6">Ref: ${refId} — Screenshot this page. Complete payment via QR below.</span>`;
-
+  document.getElementById('success-sub').innerHTML=`Thank you <strong style="color:#4dd97a">${name}</strong>! Seats <strong style="color:#4dd97a">${seats}</strong> on ${fd}.<br><span style="font-size:11px;opacity:0.5">Ref: ${refId} — Screenshot this page as your receipt.</span>`;
   document.getElementById('review-view').style.display='none';
   document.getElementById('success-view').style.display='block';
 
-  const subject=`New Booking: ${name} | ${routeStr} | ${fd}`;
-  const mailBody=`NEW BUS BOOKING — Sambriddhi Air Bus\n\nRef       : ${refId}\nPassenger : ${name}\nPhone     : ${phone}\nEmail     : ${email}\nRoute     : ${routeStr}\nDate      : ${fd}\nSeats     : ${seats}\nTotal     : ${total}\n\nPlease confirm this booking and send ticket to passenger.`;
-  window.location.href=`mailto:${OWNER_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(mailBody)}`;
+  setNotif('n-save', saveOk, saveOk ? '✓ Booking saved to database' : '⚠ Save failed — email still sent');
+
+  // 3. Build WhatsApp link
+  const waMsg=`🚌 *New Booking — Sambriddhi Air Bus*\n\nRef: ${refId}\nPassenger: ${name}\nPhone: ${phone}\nRoute: ${routeStr}\nDate: ${fd}\nSeats: ${seats}\nTotal: ${total}\nStatus: Pending Payment\n\nPlease confirm this booking.`;
+  document.getElementById('wa-btn').href=`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waMsg)}`;
+
+  // 4. Send EmailJS
+  const emailOk=await sendEmailJS({from_name:name,from_email:email||phone+'@noemail.com',booking_ref:refId,route:routeStr,travel_date:fd,seats,total,phone,to_email:'sambriddhiairbus@gmail.com'});
+  setNotif('n-email', emailOk, emailOk ? '✓ Email sent to operator' : '⚠ Email failed — use WhatsApp below');
 }
 
 function resetAll(){
