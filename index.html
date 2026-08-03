@@ -5,126 +5,173 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sambriddhi Air Bus — Book Your Ticket</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Nunito:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
+:root{
+  --asphalt:#171512;
+  --asphalt-2:#211d18;
+  --paper:#f6efdd;
+  --paper-2:#ece1c4;
+  --ink:#2a241b;
+  --marigold:#f2a93b;
+  --marigold-dim:#c9891f;
+  --pine:#2f6b4c;
+  --pine-dim:#1f4a34;
+  --rust:#bd4426;
+  --rust-dim:#8f3520;
+  --line:rgba(246,239,221,0.14);
+}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Nunito',sans-serif;background:#0a1a0e;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:20px;}
-.app{position:relative;overflow:hidden;border-radius:16px;width:100%;max-width:480px;min-height:600px;}
-.bg-layer{position:absolute;inset:0;overflow:hidden;}
-.bg-img{width:100%;height:100%;object-fit:cover;object-position:center 60%;filter:brightness(0.28) saturate(0.6) hue-rotate(80deg);}
-.speed-lines{position:absolute;inset:0;overflow:hidden;}
-.sline{position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgba(77,217,122,0.15),transparent);animation:speedline 0.6s linear infinite;}
-@keyframes speedline{from{transform:translateX(-100%)}to{transform:translateX(200%)}}
-.sline:nth-child(1){top:20%;animation-duration:0.5s;width:60%;}
-.sline:nth-child(2){top:38%;animation-duration:0.7s;animation-delay:0.1s;width:80%;}
-.sline:nth-child(3){top:55%;animation-duration:0.45s;animation-delay:0.25s;width:50%;}
-.sline:nth-child(4){top:72%;animation-duration:0.65s;animation-delay:0.05s;width:70%;}
-.sline:nth-child(5){top:87%;animation-duration:0.55s;animation-delay:0.15s;width:90%;}
-.green-glow{position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:600px;height:300px;background:radial-gradient(ellipse,rgba(45,189,85,0.18) 0%,transparent 70%);animation:pulse 3s ease-in-out infinite;}
-@keyframes pulse{0%,100%{opacity:0.6;transform:translateX(-50%) scale(1)}50%{opacity:1;transform:translateX(-50%) scale(1.1)}}
+body{font-family:'Inter',sans-serif;background:var(--asphalt);min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:20px;}
+.app{position:relative;overflow:hidden;border-radius:18px;width:100%;max-width:480px;min-height:600px;background:var(--asphalt);box-shadow:0 30px 60px -20px rgba(0,0,0,0.6);}
+
+/* ── road-line ambient background ───────────────── */
+.bg-layer{position:absolute;inset:0;overflow:hidden;pointer-events:none;}
+.bg-layer::before{content:'';position:absolute;inset:0;background:
+  radial-gradient(ellipse 480px 260px at 50% -40px, rgba(242,169,59,0.16), transparent 70%),
+  linear-gradient(180deg, var(--asphalt) 0%, var(--asphalt-2) 60%, var(--asphalt) 100%);}
+.road{position:absolute;left:50%;top:0;bottom:0;width:2px;transform:translateX(-50%);
+  background:repeating-linear-gradient(180deg, rgba(246,239,221,0.35) 0 22px, transparent 22px 44px);
+  animation:roadmove 1.1s linear infinite;opacity:0.35;}
+@keyframes roadmove{from{background-position-y:0}to{background-position-y:44px}}
 .particles{position:absolute;inset:0;overflow:hidden;}
-@keyframes float{0%{transform:translateY(0);opacity:0}10%{opacity:1}90%{opacity:0.5}100%{transform:translateY(-600px) translateX(20px);opacity:0}}
+@keyframes float{0%{transform:translateY(0);opacity:0}10%{opacity:0.8}90%{opacity:0.3}100%{transform:translateY(-620px) translateX(14px);opacity:0}}
+
 .content{position:relative;z-index:2;padding:1.5rem;}
-.header{text-align:center;margin-bottom:1.5rem;animation:slideDown 0.6s ease both;}
-@keyframes slideDown{from{opacity:0;transform:translateY(-20px)}to{opacity:1;transform:translateY(0)}}
-.logo-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(45,189,85,0.15);border:1px solid rgba(45,189,85,0.4);border-radius:30px;padding:5px 14px;margin-bottom:10px;}
-.logo-dot{width:8px;height:8px;background:#4dd97a;border-radius:50%;animation:blink 1.5s ease-in-out infinite;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
-.logo-text{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;color:#4dd97a;letter-spacing:2px;text-transform:uppercase;}
-.brand-name{font-family:'Rajdhani',sans-serif;font-size:34px;font-weight:700;color:#fff;line-height:1;letter-spacing:1px;}
-.brand-name span{color:#4dd97a;}
-.brand-sub{font-size:12px;color:rgba(255,255,255,0.5);letter-spacing:3px;text-transform:uppercase;margin-top:4px;}
-.price-pill{display:inline-block;background:rgba(45,189,85,0.2);border:1px solid rgba(77,217,122,0.4);border-radius:20px;padding:4px 14px;font-size:12px;color:#4dd97a;margin-top:8px;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:1px;}
-.steps{display:flex;margin-bottom:1.5rem;border:1px solid rgba(45,189,85,0.25);border-radius:10px;overflow:hidden;}
-.step{flex:1;padding:10px 6px;text-align:center;font-size:11px;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.4);background:rgba(0,0,0,0.3);transition:all 0.3s;}
-.step.active{background:#22913f;color:#fff;}
-.step.done{background:rgba(34,145,63,0.3);color:#4dd97a;}
+
+/* ── header ──────────────────────────────────────── */
+.header{text-align:center;margin-bottom:1.4rem;animation:slideDown 0.6s ease both;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+.logo-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(242,169,59,0.12);border:1px solid rgba(242,169,59,0.35);border-radius:30px;padding:5px 14px;margin-bottom:12px;}
+.logo-dot{width:7px;height:7px;background:var(--marigold);border-radius:50%;animation:blink 1.6s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
+.logo-text{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;color:var(--marigold);letter-spacing:2.5px;text-transform:uppercase;}
+.brand-name{font-family:'Rajdhani',sans-serif;font-size:36px;font-weight:700;color:var(--paper);line-height:1;letter-spacing:0.5px;}
+.brand-name span{color:var(--marigold);}
+.brand-sub{font-size:11px;color:rgba(246,239,221,0.45);letter-spacing:3px;text-transform:uppercase;margin-top:6px;font-weight:500;}
+.route-strip{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:12px;font-family:'Space Mono',monospace;font-size:11px;color:rgba(246,239,221,0.5);}
+.route-strip .dash{width:26px;height:1px;background:repeating-linear-gradient(90deg,rgba(246,239,221,0.5) 0 4px,transparent 4px 8px);}
+.price-pill{display:inline-block;background:rgba(47,107,76,0.35);border:1px solid rgba(47,107,76,0.7);border-radius:20px;padding:4px 14px;font-size:12px;color:#8fd6ac;margin-top:10px;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:1px;}
+
+/* ── step indicator: like gate numbers ──────────── */
+.steps{display:flex;margin-bottom:1.5rem;gap:6px;}
+.step{flex:1;padding:9px 4px;text-align:center;font-size:10.5px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(246,239,221,0.32);background:rgba(0,0,0,0.25);border:1px solid var(--line);border-radius:7px;transition:all 0.3s;}
+.step.active{background:var(--marigold);color:var(--ink);border-color:var(--marigold);}
+.step.done{background:rgba(47,107,76,0.35);color:#8fd6ac;border-color:rgba(47,107,76,0.6);}
+
 .panel{display:none;animation:fadein 0.4s ease;}.panel.active{display:block;}
 @keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.sec-label{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#4dd97a;margin-bottom:10px;}
+.sec-label{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:var(--marigold);margin-bottom:10px;}
+
+/* ── route cards ─────────────────────────────────── */
 .routes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem;}
-.rc{background:rgba(0,0,0,0.45);border:1px solid rgba(45,189,85,0.25);border-radius:10px;padding:12px 10px;cursor:pointer;transition:all 0.25s;text-align:center;}
-.rc:hover{border-color:rgba(77,217,122,0.6);background:rgba(34,145,63,0.2);}
-.rc.sel{border-color:#4dd97a;background:rgba(34,145,63,0.3);}
-.rc .rfrom{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;color:#fff;}
-.rc .rarr{font-size:14px;color:#4dd97a;margin:2px 0;}
-.rc .rsub{font-size:10px;color:rgba(255,255,255,0.4);}
-.rc .rpr{font-size:12px;font-weight:600;color:#4dd97a;font-family:'Rajdhani',sans-serif;margin-top:4px;}
+.rc{background:rgba(0,0,0,0.28);border:1px solid var(--line);border-radius:10px;padding:12px 8px;cursor:pointer;transition:all 0.2s;text-align:center;}
+.rc:hover{border-color:rgba(242,169,59,0.5);background:rgba(242,169,59,0.06);}
+.rc.sel{border-color:var(--marigold);background:rgba(242,169,59,0.14);}
+.rc .rfrom{font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:var(--paper);}
+.rc .rarr{font-size:13px;color:var(--marigold);margin:2px 0;}
+.rc .rsub{font-size:9.5px;color:rgba(246,239,221,0.4);}
+.rc .rpr{font-size:11.5px;font-weight:700;color:#8fd6ac;font-family:'Space Mono',monospace;margin-top:5px;}
+
 .fgroup{margin-bottom:10px;}
-.flbl{font-size:11px;color:rgba(255,255,255,0.5);font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:5px;display:block;}
-input,select{width:100%;padding:9px 12px;font-size:14px;font-family:'Nunito',sans-serif;background:rgba(0,0,0,0.4);border:1px solid rgba(45,189,85,0.3);border-radius:8px;color:#fff;outline:none;transition:border 0.2s;}
-input:focus{border-color:#4dd97a;}
-input::placeholder{color:rgba(255,255,255,0.3);}
-input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightness(0.6);}
+.flbl{font-size:10.5px;color:rgba(246,239,221,0.5);font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px;display:block;}
+input,select{width:100%;padding:10px 12px;font-size:14px;font-family:'Inter',sans-serif;background:rgba(0,0,0,0.3);border:1px solid var(--line);border-radius:8px;color:var(--paper);outline:none;transition:border 0.2s;}
+input:focus{border-color:var(--marigold);}
+input::placeholder{color:rgba(246,239,221,0.28);}
+input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightness(0.7) sepia(1) saturate(3) hue-rotate(0deg);}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.bus-shell{background:rgba(0,0,0,0.5);border:1px solid rgba(45,189,85,0.25);border-radius:12px;padding:1rem;margin-bottom:1rem;}
-.bus-nose{text-align:center;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:600;letter-spacing:2px;color:#4dd97a;border-bottom:2px solid rgba(45,189,85,0.4);padding-bottom:8px;margin-bottom:10px;text-transform:uppercase;}
+
+/* ── bus / seat map ──────────────────────────────── */
+.bus-shell{background:rgba(0,0,0,0.32);border:1px solid var(--line);border-radius:12px;padding:1rem;margin-bottom:1rem;}
+.bus-nose{text-align:center;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--marigold);border-bottom:2px dashed var(--line);padding-bottom:8px;margin-bottom:10px;text-transform:uppercase;}
 .bus-body{display:flex;gap:0;max-width:220px;margin:0 auto;}
 .col-left{display:flex;flex-direction:column;gap:5px;width:52px;}
 .col-aisle{width:20px;display:flex;align-items:center;justify-content:center;}
 .col-right{display:flex;flex-direction:column;gap:5px;width:28px;}
-.aisle-label{writing-mode:vertical-rl;font-size:9px;color:rgba(255,255,255,0.2);letter-spacing:1px;font-family:'Rajdhani',sans-serif;text-transform:uppercase;}
-.seat{width:100%;height:34px;border:1px solid rgba(45,189,85,0.3);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;font-family:'Rajdhani',sans-serif;cursor:pointer;color:rgba(255,255,255,0.6);background:rgba(0,0,0,0.3);transition:all 0.2s;}
-.seat:hover:not(.booked){border-color:#4dd97a;color:#fff;transform:scale(1.06);}
-.seat.booked{background:rgba(255,80,80,0.12);color:rgba(255,120,120,0.5);cursor:not-allowed;border-color:rgba(255,80,80,0.2);}
-.seat.admin-blocked{background:rgba(200,100,0,0.15);color:rgba(255,160,60,0.6);cursor:not-allowed;border-color:rgba(200,130,0,0.3);}
-.seat.selected{background:#22913f;border-color:#4dd97a;color:#fff;box-shadow:0 0 8px rgba(45,189,85,0.4);}
+.aisle-label{writing-mode:vertical-rl;font-size:8.5px;color:rgba(246,239,221,0.2);letter-spacing:1px;font-family:'Rajdhani',sans-serif;text-transform:uppercase;}
+.seat{width:100%;height:34px;border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:'Space Mono',monospace;cursor:pointer;color:rgba(246,239,221,0.55);background:rgba(0,0,0,0.22);transition:all 0.15s;}
+.seat:hover:not(.booked):not(.admin-blocked){border-color:var(--marigold);color:var(--paper);transform:scale(1.06);}
+.seat.booked{background:rgba(189,68,38,0.15);color:rgba(217,120,90,0.55);cursor:not-allowed;border-color:rgba(189,68,38,0.25);}
+.seat.admin-blocked{background:repeating-linear-gradient(45deg,rgba(143,108,53,0.18),rgba(143,108,53,0.18) 4px,rgba(0,0,0,0.15) 4px,rgba(0,0,0,0.15) 8px);color:rgba(226,183,110,0.6);cursor:not-allowed;border-color:rgba(178,138,60,0.35);}
+.seat.selected{background:var(--marigold);border-color:var(--marigold);color:var(--ink);box-shadow:0 0 10px rgba(242,169,59,0.5);}
 .seat-pair{display:flex;gap:5px;}
 .seat-pair .seat{flex:1;}
-.bus-tail{border-top:2px solid rgba(45,189,85,0.4);margin-top:10px;padding-top:8px;}
+.bus-tail{border-top:2px dashed var(--line);margin-top:10px;padding-top:8px;}
 .sleeper-row{display:flex;gap:8px;max-width:220px;margin:0 auto;}
 .sleeper-row .seat{flex:1;height:52px;border-radius:8px;font-size:9px;flex-direction:column;gap:2px;}
 .sleeper-icon{font-size:14px;line-height:1;}
-.type-tag{font-size:8px;color:#4dd97a;font-family:'Rajdhani',sans-serif;letter-spacing:1px;}
-.seat-legend{display:flex;gap:10px;font-size:10px;color:rgba(255,255,255,0.4);margin:10px 0 0;justify-content:center;font-family:'Rajdhani',sans-serif;letter-spacing:1px;text-transform:uppercase;flex-wrap:wrap;}
-.ldot{width:12px;height:12px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:middle;}
-.sel-bar{background:rgba(0,0,0,0.4);border:1px solid rgba(45,189,85,0.25);border-radius:8px;padding:10px 14px;font-size:13px;color:rgba(255,255,255,0.5);margin-bottom:10px;min-height:38px;}
-.total-row{display:flex;justify-content:space-between;align-items:center;background:rgba(34,145,63,0.15);border:1px solid rgba(45,189,85,0.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;}
-.total-row span:first-child{font-size:12px;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,0.5);}
-.total-row span:last-child{font-size:20px;font-weight:700;font-family:'Rajdhani',sans-serif;color:#4dd97a;}
+.type-tag{font-size:7.5px;color:var(--marigold);font-family:'Rajdhani',sans-serif;letter-spacing:1px;}
+.seat.selected .type-tag{color:var(--ink);opacity:0.7;}
+.seat-legend{display:flex;gap:10px;font-size:9.5px;color:rgba(246,239,221,0.4);margin:12px 0 0;justify-content:center;font-family:'Rajdhani',sans-serif;letter-spacing:1px;text-transform:uppercase;flex-wrap:wrap;}
+.ldot{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:middle;}
+
+.sel-bar{background:rgba(0,0,0,0.28);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13px;color:rgba(246,239,221,0.4);margin-bottom:10px;min-height:38px;font-family:'Space Mono',monospace;}
+.total-row{display:flex;justify-content:space-between;align-items:center;background:rgba(47,107,76,0.18);border:1px solid rgba(47,107,76,0.45);border-radius:8px;padding:10px 14px;margin-bottom:12px;}
+.total-row span:first-child{font-size:11px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(246,239,221,0.5);}
+.total-row span:last-child{font-size:20px;font-weight:700;font-family:'Space Mono',monospace;color:#8fd6ac;}
+
+/* ── buttons ─────────────────────────────────────── */
 .btn{width:100%;padding:13px;border:none;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
-.btn-green{background:#22913f;color:#fff;}
-.btn-green:hover{background:#2dbd55;transform:translateY(-1px);}
-.btn-green:disabled{background:#1a4a28;color:rgba(255,255,255,0.4);cursor:not-allowed;transform:none;}
-.btn-ghost{background:rgba(0,0,0,0.3);border:1px solid rgba(45,189,85,0.25);color:rgba(255,255,255,0.5);margin-top:8px;}
-.btn-ghost:hover{border-color:rgba(77,217,122,0.5);color:#fff;}
-.btn-wa{width:100%;padding:13px;border:none;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;background:#25d366;color:#fff;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;}
-.btn-wa:hover{background:#1ebe5a;}
-.err{color:#f0997b;font-size:12px;margin-bottom:8px;font-family:'Rajdhani',sans-serif;font-weight:600;}
-.summary-card{background:rgba(0,0,0,0.5);border:1px solid rgba(45,189,85,0.25);border-radius:12px;overflow:hidden;margin-bottom:1rem;}
-.summary-head{background:rgba(34,145,63,0.3);padding:10px 16px;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:700;color:#4dd97a;letter-spacing:1px;text-transform:uppercase;}
-.summary-row{display:flex;justify-content:space-between;padding:8px 16px;border-bottom:1px solid rgba(45,189,85,0.1);font-size:13px;}
+.btn-green{background:var(--marigold);color:var(--ink);}
+.btn-green:hover{background:#ffbe5c;transform:translateY(-1px);}
+.btn-green:disabled{background:#5a4a2c;color:rgba(246,239,221,0.4);cursor:not-allowed;transform:none;}
+.btn-ghost{background:rgba(0,0,0,0.25);border:1px solid var(--line);color:rgba(246,239,221,0.5);margin-top:8px;}
+.btn-ghost:hover{border-color:rgba(242,169,59,0.5);color:var(--paper);}
+.btn-wa{width:100%;padding:13px;border:none;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;background:#25d366;color:#0c2515;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;}
+.btn-wa:hover{background:#3ee27f;}
+.err{color:#e28a63;font-size:12px;margin-bottom:8px;font-family:'Rajdhani',sans-serif;font-weight:600;}
+
+/* ── ticket / boarding pass ──────────────────────── */
+.ticket{position:relative;background:var(--paper);border-radius:12px;color:var(--ink);margin-bottom:1rem;overflow:visible;}
+.ticket-head{background:var(--ink);color:var(--paper);padding:10px 16px;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center;}
+.ticket-head span:last-child{color:var(--marigold);font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0;}
+.ticket-body{padding:4px 16px 2px;}
+.summary-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed rgba(42,36,27,0.18);font-size:13px;}
 .summary-row:last-child{border-bottom:none;}
-.summary-row span:first-child{color:rgba(255,255,255,0.45);}
-.summary-row span:last-child{color:#fff;font-weight:500;}
-.summary-row.tl span:last-child{color:#4dd97a;font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:700;}
-.qr-wrap{background:rgba(0,0,0,0.5);border:1px solid rgba(45,189,85,0.25);border-radius:12px;padding:1rem;text-align:center;margin-bottom:1rem;}
-.qr-ttl{font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:#4dd97a;margin-bottom:8px;}
-.qr-img{width:130px;height:130px;border-radius:8px;border:2px solid rgba(45,189,85,0.4);}
-.qr-acc{font-size:11px;color:rgba(255,255,255,0.35);margin-top:5px;}
-.success-wrap{text-align:center;padding:1rem 0;}
-.success-icon{width:64px;height:64px;background:rgba(34,145,63,0.25);border:2px solid #4dd97a;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:28px;color:#4dd97a;animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;}
+.summary-row span:first-child{color:rgba(42,36,27,0.5);font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;font-size:11px;}
+.summary-row span:last-child{color:var(--ink);font-weight:600;font-family:'Space Mono',monospace;font-size:12.5px;}
+.summary-row.tl span:last-child{color:var(--rust);font-size:19px;font-weight:700;}
+.perf{position:relative;height:0;margin:6px 0;}
+.perf::before{content:'';position:absolute;left:-11px;right:-11px;top:-9px;height:18px;background:repeating-linear-gradient(90deg, transparent 0 8px, var(--asphalt) 8px 9px, transparent 9px 17px);opacity:0;} 
+.notch{position:absolute;width:20px;height:20px;background:var(--asphalt-2);border-radius:50%;top:50%;transform:translateY(-50%);z-index:3;}
+.notch.l{left:-10px;}.notch.r{right:-10px;}
+.dashline{border-top:2px dashed rgba(42,36,27,0.25);}
+.barcode{display:flex;align-items:flex-end;gap:2px;height:34px;padding:10px 16px 4px;}
+.barcode span{display:block;background:var(--ink);width:2px;}
+.ticket-foot{padding:6px 16px 14px;text-align:center;}
+.ticket-foot .ref{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:3px;color:rgba(42,36,27,0.55);}
+
+.qr-wrap{background:var(--paper);border-radius:0 0 12px 12px;padding:1rem;text-align:center;}
+.qr-ttl{font-family:'Rajdhani',sans-serif;font-size:10.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--rust);margin-bottom:8px;}
+.qr-img{width:126px;height:126px;border-radius:8px;border:2px solid rgba(42,36,27,0.2);}
+.qr-acc{font-size:10.5px;color:rgba(42,36,27,0.45);margin-top:6px;font-family:'Space Mono',monospace;}
+
+/* ── success ─────────────────────────────────────── */
+.success-wrap{text-align:center;padding:0.5rem 0;position:relative;}
+.stamp{position:absolute;top:6px;right:6px;border:3px double var(--rust);color:var(--rust);font-family:'Rajdhani',sans-serif;font-weight:700;font-size:13px;letter-spacing:2px;padding:6px 10px;border-radius:8px;transform:rotate(-9deg);opacity:0.85;text-transform:uppercase;z-index:4;background:rgba(189,68,38,0.05);}
+.success-icon{width:60px;height:60px;background:rgba(47,107,76,0.2);border:2px solid var(--pine);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:26px;color:#8fd6ac;animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1) both;}
 @keyframes popIn{from{opacity:0;transform:scale(0.5)}to{opacity:1;transform:scale(1)}}
-.success-title{font-family:'Rajdhani',sans-serif;font-size:26px;font-weight:700;color:#fff;margin-bottom:6px;}
-.success-sub{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.6;margin-bottom:1rem;}
-.notif-box{background:rgba(0,0,0,0.35);border:1px solid rgba(45,189,85,0.18);border-radius:10px;padding:10px 14px;margin-bottom:12px;}
-.notif-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;color:rgba(255,255,255,0.45);}
-.notif-row.ok{color:#4dd97a;} .notif-row.fail{color:#f0997b;}
+.success-title{font-family:'Rajdhani',sans-serif;font-size:26px;font-weight:700;color:var(--paper);margin-bottom:6px;}
+.success-sub{font-size:13px;color:rgba(246,239,221,0.55);line-height:1.6;margin-bottom:1rem;}
+.notif-box{background:rgba(0,0,0,0.25);border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin-bottom:12px;}
+.notif-row{display:flex;align-items:center;gap:8px;padding:4px 0;font-size:12px;color:rgba(246,239,221,0.45);}
+.notif-row.ok{color:#8fd6ac;} .notif-row.fail{color:#e28a63;}
 .ndot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;}
-.lov{position:absolute;inset:0;background:rgba(5,12,6,0.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:30;border-radius:16px;}
-.spinner{width:38px;height:38px;border:3px solid rgba(77,217,122,0.15);border-top-color:#4dd97a;border-radius:50%;animation:spin 0.75s linear infinite;margin-bottom:12px;}
+.diag{font-size:10.5px;color:rgba(246,239,221,0.35);margin-top:4px;font-family:'Space Mono',monospace;text-align:left;line-height:1.5;word-break:break-word;}
+
+/* ── loading overlay ─────────────────────────────── */
+.lov{position:absolute;inset:0;background:rgba(10,9,7,0.9);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:30;border-radius:18px;}
+.spinner{width:38px;height:38px;border:3px solid rgba(242,169,59,0.15);border-top-color:var(--marigold);border-radius:50%;animation:spin 0.75s linear infinite;margin-bottom:12px;}
 @keyframes spin{to{transform:rotate(360deg)}}
-.lov-msg{font-family:'Rajdhani',sans-serif;font-size:13px;color:#4dd97a;letter-spacing:1px;text-transform:uppercase;}
-.lov-sub{font-size:11px;color:rgba(255,255,255,0.3);margin-top:6px;font-family:'Nunito',sans-serif;text-align:center;max-width:260px;}
+.lov-msg{font-family:'Rajdhani',sans-serif;font-size:13px;color:var(--marigold);letter-spacing:1px;text-transform:uppercase;}
+.lov-sub{font-size:11px;color:rgba(246,239,221,0.3);margin-top:6px;font-family:'Inter',sans-serif;text-align:center;max-width:260px;}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="bg-layer">
-    <img class="bg-img" src="backgound.jpg" alt="" onerror="this.style.display='none'">
-    <div class="speed-lines"><div class="sline"></div><div class="sline"></div><div class="sline"></div><div class="sline"></div><div class="sline"></div></div>
-    <div class="green-glow"></div>
+    <div class="road"></div>
     <div class="particles" id="particles"></div>
   </div>
   <div class="lov" id="lov" style="display:none">
@@ -136,7 +183,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
     <div class="header">
       <div class="logo-badge"><div class="logo-dot"></div><span class="logo-text">Live Booking</span></div>
       <div class="brand-name">Sambriddhi <span>Air</span></div>
-      <div class="brand-sub">Dharan · Itahari · Pokhara</div>
+      <div class="route-strip">DHARAN<span class="dash"></span>ITAHARI<span class="dash"></span>POKHARA</div>
       <div class="price-pill">AC Deluxe — Rs. 2,500 / seat</div>
     </div>
     <div class="steps">
@@ -165,14 +212,14 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
         <div class="bus-nose">▲ Driver / Front</div>
         <div class="bus-body" id="bus-body"></div>
         <div class="bus-tail">
-          <div style="text-align:center;font-family:Rajdhani,sans-serif;font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:2px;margin-bottom:6px;text-transform:uppercase;">Sleeper Berths</div>
+          <div style="text-align:center;font-family:Rajdhani,sans-serif;font-size:10px;color:rgba(246,239,221,0.3);letter-spacing:2px;margin-bottom:6px;text-transform:uppercase;">Sleeper Berths</div>
           <div class="sleeper-row" id="sleeper-row"></div>
         </div>
         <div class="seat-legend">
-          <span><span class="ldot" style="background:rgba(0,0,0,0.3);border:1px solid rgba(45,189,85,0.3);"></span>Free</span>
-          <span><span class="ldot" style="background:#22913f;"></span>Selected</span>
-          <span><span class="ldot" style="background:rgba(255,80,80,0.12);border:1px solid rgba(255,80,80,0.2);"></span>Booked</span>
-          <span><span class="ldot" style="background:rgba(200,100,0,0.15);border:1px solid rgba(200,130,0,0.3);"></span>Reserved</span>
+          <span><span class="ldot" style="background:rgba(0,0,0,0.22);border:1px solid var(--line);"></span>Free</span>
+          <span><span class="ldot" style="background:var(--marigold);"></span>Selected</span>
+          <span><span class="ldot" style="background:rgba(189,68,38,0.15);border:1px solid rgba(189,68,38,0.25);"></span>Booked</span>
+          <span><span class="ldot" style="background:rgba(178,138,60,0.25);border:1px solid rgba(178,138,60,0.35);"></span>Reserved</span>
         </div>
       </div>
       <div class="sel-bar" id="sel-bar">No seats selected</div>
@@ -199,8 +246,12 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
     <div class="panel" id="p4">
       <div id="review-view">
         <div class="sec-label">Booking summary</div>
-        <div class="summary-card"><div class="summary-head">Trip Details</div><div id="sum-rows"></div></div>
-        <div class="qr-wrap">
+        <div class="ticket">
+          <div class="ticket-head"><span>Boarding Pass</span><span id="sum-ref">— — —</span></div>
+          <div class="ticket-body" id="sum-rows"></div>
+          <div class="barcode" id="sum-barcode"></div>
+        </div>
+        <div class="qr-wrap" style="border-radius:12px;margin-bottom:1rem;">
           <div class="qr-ttl">Pay via QR — Siddhartha Bank</div>
           <img class="qr-img" src="esewa_qr.jpg" alt="Payment QR" onerror="this.alt='QR not found'">
           <div class="qr-acc">Samir Ghimire — Acc: 55510731797</div>
@@ -216,15 +267,22 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
           <div class="notif-box">
             <div class="notif-row" id="n-save"><div class="ndot"></div><span id="n-save-txt">Saving booking…</span></div>
             <div class="notif-row" id="n-email"><div class="ndot"></div><span id="n-email-txt">Sending email notification…</span></div>
+            <div class="diag" id="n-diag" style="display:none;"></div>
           </div>
-          <div class="summary-card" style="text-align:left;"><div class="summary-head">Your Ticket</div><div id="success-rows"></div></div>
-          <div class="qr-wrap">
+          <div class="ticket" style="text-align:left;">
+            <div class="stamp" id="stamp" style="display:none;">Confirmed</div>
+            <div class="ticket-head"><span>Boarding Pass</span><span id="suc-ref">— — —</span></div>
+            <div class="ticket-body" id="success-rows"></div>
+            <div class="barcode" id="suc-barcode"></div>
+            <div class="ticket-foot"><div class="ref" id="suc-ref2"></div></div>
+          </div>
+          <div class="qr-wrap" style="border-radius:12px;margin:0 0 1rem;">
             <div class="qr-ttl">Scan to pay — Siddhartha Bank</div>
             <img class="qr-img" src="esewa_qr.jpg" alt="Payment QR">
             <div class="qr-acc">Samir Ghimire — Acc: 55510731797</div>
           </div>
           <a id="wa-btn" href="#" target="_blank" class="btn-wa">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="#0c2515"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
             Notify via WhatsApp
           </a>
           <button class="btn btn-ghost" onclick="resetAll()" style="margin-top:8px;">Book Another Ticket</button>
@@ -255,16 +313,17 @@ let selSeats    = [];
 let tDate       = '';
 let cachedBinId = localStorage.getItem(BIN_ID_KEY) || null;
 let allBookings = [];
+let lastEmailError = null;
 
-// Particles
+// Ambient particles (dust / headlight motes)
 (function(){
   const c=document.getElementById('particles');
-  for(let i=0;i<18;i++){
+  for(let i=0;i<16;i++){
     const d=document.createElement('div');
-    d.style.cssText=['position:absolute',`width:${Math.random()*3+1}px`,`height:${Math.random()*3+1}px`,
-      'background:#4dd97a','border-radius:50%',`left:${Math.random()*100}%`,'bottom:-10px',
-      `animation:float ${Math.random()*8+5}s linear ${Math.random()*5}s infinite`,
-      `opacity:${Math.random()*0.5+0.2}`].join(';');
+    d.style.cssText=['position:absolute',`width:${Math.random()*2.5+1}px`,`height:${Math.random()*2.5+1}px`,
+      'background:#f2a93b','border-radius:50%',`left:${Math.random()*100}%`,'bottom:-10px',
+      `animation:float ${Math.random()*9+6}s linear ${Math.random()*5}s infinite`,
+      `opacity:${Math.random()*0.4+0.15}`].join(';');
     c.appendChild(d);
   }
 })();
@@ -355,14 +414,25 @@ function sortSeats(arr){
 
 function updateSelBar(){
   const b=document.getElementById('sel-bar'),t=document.getElementById('seat-total');
-  if(!selSeats.length){ b.textContent='No seats selected'; b.style.color='rgba(255,255,255,0.35)'; }
-  else{ b.style.color='#fff'; b.innerHTML='<span style="color:#4dd97a;font-family:Rajdhani,sans-serif;font-weight:600;">Seats: </span>'+sortSeats(selSeats).join(', '); }
+  if(!selSeats.length){ b.textContent='No seats selected'; b.style.color='rgba(246,239,221,0.35)'; }
+  else{ b.style.color='var(--paper)'; b.innerHTML='<span style="color:#f2a93b;font-family:Rajdhani,sans-serif;font-weight:700;">SEATS </span>'+sortSeats(selSeats).join(', '); }
   t.textContent='Rs. '+(selSeats.length*PRICE).toLocaleString();
 }
 
 function rowH(l,v,c){ return `<div class="summary-row${c||''}"><span>${l}</span><span>${v}</span></div>`; }
 
-function buildSummary(tid){
+function buildBarcode(el){
+  el.innerHTML='';
+  for(let i=0;i<38;i++){
+    const bar=document.createElement('span');
+    const h=Math.random()*24+8;
+    bar.style.height=h+'px';
+    bar.style.opacity=Math.random()>0.15?1:0.35;
+    el.appendChild(bar);
+  }
+}
+
+function buildSummary(tid,refId){
   const name=document.getElementById('pax-name').value.trim();
   const phone=document.getElementById('pax-phone').value.trim();
   const email=document.getElementById('pax-email').value.trim();
@@ -371,6 +441,11 @@ function buildSummary(tid){
     rowH('Passenger',name)+rowH('Phone',phone)+(email?rowH('Email',email):'')+
     rowH('Route',route.from+' → '+route.to)+rowH('Date',fd)+
     rowH('Seats',sortSeats(selSeats).join(', '))+rowH('Total','Rs. '+(selSeats.length*PRICE).toLocaleString(),' tl');
+  if(refId){
+    const short='#'+refId.replace('BK','');
+    if(tid==='sum-rows'){ document.getElementById('sum-ref').textContent=short; buildBarcode(document.getElementById('sum-barcode')); }
+    else{ document.getElementById('suc-ref').textContent=short; document.getElementById('suc-ref2').textContent=refId+'  ·  '+phone; buildBarcode(document.getElementById('suc-barcode')); }
+  }
 }
 
 function selRoute(el,f,t){ document.querySelectorAll('.rc').forEach(c=>c.classList.remove('sel')); el.classList.add('sel'); route={from:f,to:t}; }
@@ -385,7 +460,7 @@ async function goStep(n){
   if(n===4){
     const name=document.getElementById('pax-name').value.trim(), phone=document.getElementById('pax-phone').value.trim();
     if(!name||!phone){ document.getElementById('p3e').style.display='block'; return; }
-    document.getElementById('p3e').style.display='none'; buildSummary('sum-rows');
+    document.getElementById('p3e').style.display='none'; buildSummary('sum-rows', 'BK'+String(Date.now()).slice(-5));
   }
   [1,2,3,4].forEach(i=>{ document.getElementById('p'+i).classList.toggle('active',i===n); const s=document.getElementById('s'+i); s.className='step'+(i===n?' active':i<n?' done':''); });
 }
@@ -394,10 +469,18 @@ async function goStep(n){
 function setNotif(id,ok,txt){ const el=document.getElementById(id); el.className='notif-row '+(ok?'ok':'fail'); el.querySelector('span').textContent=txt; }
 
 async function sendEmailJS(params){
+  const errors=[];
   for(const svc of EJS_SERVICES){
-    try{ await emailjs.send(svc,EJS_TEMPLATE,params); return true; }catch(e){ console.warn('EJS failed',svc,e); }
+    try{
+      const resp = await emailjs.send(svc,EJS_TEMPLATE,params);
+      return {ok:true, service:svc, status:resp.status};
+    }catch(e){
+      const detail = (e && (e.text || e.message)) ? (e.text || e.message) : JSON.stringify(e);
+      console.warn('EmailJS failed for service', svc, e);
+      errors.push(`${svc} → ${e && e.status ? e.status+' ' : ''}${detail}`);
+    }
   }
-  return false;
+  return {ok:false, errors};
 }
 
 // ── Confirm booking ───────────────────────────────
@@ -424,8 +507,8 @@ async function confirmBooking(){
 
   // 2. Show success screen first
   hideLoad();
-  buildSummary('success-rows');
-  document.getElementById('success-sub').innerHTML=`Thank you <strong style="color:#4dd97a">${name}</strong>! Seats <strong style="color:#4dd97a">${seats}</strong> on ${fd}.<br><span style="font-size:11px;opacity:0.5">Ref: ${refId} — Screenshot this page as your receipt.</span>`;
+  buildSummary('success-rows', refId);
+  document.getElementById('success-sub').innerHTML=`Thank you <strong style="color:#f2a93b">${name}</strong>! Seats <strong style="color:#f2a93b">${seats}</strong> on ${fd}.<br><span style="font-size:11px;opacity:0.5">Ref: ${refId} — Screenshot this page as your receipt.</span>`;
   document.getElementById('review-view').style.display='none';
   document.getElementById('success-view').style.display='block';
 
@@ -436,15 +519,25 @@ async function confirmBooking(){
   document.getElementById('wa-btn').href=`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waMsg)}`;
 
   // 4. Send EmailJS
-  const emailOk=await sendEmailJS({from_name:name,from_email:email||phone+'@noemail.com',booking_ref:refId,route:routeStr,travel_date:fd,seats,total,phone,to_email:'sambriddhiairbus@gmail.com'});
-  setNotif('n-email', emailOk, emailOk ? '✓ Email sent to operator' : '⚠ Email failed — use WhatsApp below');
+  const result = await sendEmailJS({from_name:name,from_email:email||phone+'@noemail.com',booking_ref:refId,route:routeStr,travel_date:fd,seats,total,phone,to_email:'sambriddhiairbus@gmail.com'});
+  setNotif('n-email', result.ok, result.ok ? '✓ Email sent to operator' : '⚠ Email failed — use WhatsApp below');
+  if(result.ok){
+    document.getElementById('stamp').style.display='block';
+  } else {
+    lastEmailError = result.errors.join(' | ');
+    const diag=document.getElementById('n-diag');
+    diag.style.display='block';
+    diag.textContent = 'Debug: ' + lastEmailError;
+  }
 }
 
 function resetAll(){
-  selSeats=[]; tDate='';
+  selSeats=[]; tDate=''; lastEmailError=null;
   ['pax-name','pax-phone','pax-email','travel-date'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('review-view').style.display='block';
   document.getElementById('success-view').style.display='none';
+  document.getElementById('stamp').style.display='none';
+  document.getElementById('n-diag').style.display='none';
   document.getElementById('confirm-btn').disabled=false;
   goStep(1);
 }
