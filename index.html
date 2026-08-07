@@ -107,9 +107,23 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
 .ldot{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:4px;vertical-align:middle;}
 
 .sel-bar{background:rgba(0,0,0,0.28);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13px;color:rgba(246,239,221,0.4);margin-bottom:10px;min-height:38px;font-family:'Space Mono',monospace;}
+
+/* ── coupon box ──────────────────────────────────── */
+.coupon-box{background:rgba(0,0,0,0.28);border:1px dashed rgba(242,169,59,0.4);border-radius:8px;padding:10px 12px;margin-bottom:10px;}
+.coupon-row{display:flex;gap:8px;}
+.coupon-row input{flex:1;text-transform:uppercase;letter-spacing:1px;}
+.coupon-row input::placeholder{text-transform:none;letter-spacing:normal;}
+.btn-coupon{padding:0 16px;border:1px solid var(--marigold);background:transparent;color:var(--marigold);border-radius:8px;font-family:'Rajdhani',sans-serif;font-weight:700;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;cursor:pointer;white-space:nowrap;transition:all 0.2s;}
+.btn-coupon:hover{background:rgba(242,169,59,0.12);}
+.coupon-msg{font-size:11.5px;margin-top:7px;font-family:'Rajdhani',sans-serif;font-weight:600;letter-spacing:0.5px;}
+.coupon-msg.ok{color:#8fd6ac;}
+.coupon-msg.bad{color:#e28a63;}
+.coupon-applied-tag{display:inline-flex;align-items:center;gap:6px;background:rgba(47,107,76,0.25);border:1px solid rgba(47,107,76,0.6);color:#8fd6ac;border-radius:20px;padding:4px 12px;font-size:11px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1px;}
+
 .total-row{display:flex;justify-content:space-between;align-items:center;background:rgba(47,107,76,0.18);border:1px solid rgba(47,107,76,0.45);border-radius:8px;padding:10px 14px;margin-bottom:12px;}
 .total-row span:first-child{font-size:11px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(246,239,221,0.5);}
 .total-row span:last-child{font-size:20px;font-weight:700;font-family:'Space Mono',monospace;color:#8fd6ac;}
+.total-strike{font-size:12px;color:rgba(246,239,221,0.35);text-decoration:line-through;font-family:'Space Mono',monospace;margin-right:8px;}
 
 /* ── buttons ─────────────────────────────────────── */
 .btn{width:100%;padding:13px;border:none;border-radius:10px;font-family:'Rajdhani',sans-serif;font-size:16px;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all 0.2s;}
@@ -223,6 +237,16 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
         </div>
       </div>
       <div class="sel-bar" id="sel-bar">No seats selected</div>
+
+      <div class="coupon-box">
+        <label class="flbl">Have a discount coupon?</label>
+        <div class="coupon-row">
+          <input type="text" id="coupon-input" placeholder="Enter coupon code">
+          <button type="button" class="btn-coupon" id="coupon-btn" onclick="applyCoupon()">Apply</button>
+        </div>
+        <div class="coupon-msg" id="coupon-msg" style="display:none"></div>
+      </div>
+
       <div class="total-row"><span>Total</span><span id="seat-total">Rs. 0</span></div>
       <div id="p2e" class="err" style="display:none">Please select at least one seat.</div>
       <button class="btn btn-green" onclick="goStep(3)">Next: Your Details →</button>
@@ -307,6 +331,11 @@ const WA_NUMBER    = '9779763255296'; // Nepal format
 // Fixed shared database — must match the same value in admin.html, or
 // customer bookings will land in a different bin than the admin panel reads.
 const FIXED_BIN_ID = '69e5c3f436566621a8d01951';
+// ── Coupon config ────────────────────────────────
+// "Sambriddhi22" → Rs. 2,100 / seat (22% off the Rs. 2,500 base fare)
+const COUPON_CODE     = 'SAMBRIDDHI22';
+const COUPON_PRICE    = 2100;
+const COUPON_LABEL    = 'SAMBRIDDHI22';
 // ═══════════════════════════════════════════════════
 
 // App state — initialized FIRST, before anything that could throw (e.g. a
@@ -318,6 +347,8 @@ let tDate          = '';
 let cachedBinId    = FIXED_BIN_ID || localStorage.getItem(BIN_ID_KEY) || null;
 let allBookings    = [];
 let lastEmailError = null;
+let currentPrice   = PRICE;
+let couponApplied  = false;
 
 // Initialize EmailJS defensively. If the CDN script was blocked (ad-blocker,
 // restrictive network, offline) `emailjs` will be undefined — guard against
@@ -351,6 +382,36 @@ document.getElementById('travel-date').min = new Date().toISOString().split('T')
 // ── Loading ──────────────────────────────────────
 function showLoad(msg,sub){ document.getElementById('lov').style.display='flex'; document.getElementById('lov-msg').textContent=msg||'Loading…'; document.getElementById('lov-sub').textContent=sub||''; }
 function hideLoad(){ document.getElementById('lov').style.display='none'; }
+
+// ── Coupon ───────────────────────────────────────
+function applyCoupon(){
+  const input=document.getElementById('coupon-input');
+  const msg=document.getElementById('coupon-msg');
+  const code=input.value.trim().toUpperCase();
+
+  if(!code){
+    msg.className='coupon-msg bad'; msg.style.display='block';
+    msg.textContent='Please enter a coupon code.';
+    return;
+  }
+
+  if(code===COUPON_CODE){
+    currentPrice=COUPON_PRICE;
+    couponApplied=true;
+    input.value=COUPON_LABEL;
+    input.disabled=true;
+    document.getElementById('coupon-btn').disabled=true;
+    document.getElementById('coupon-btn').textContent='Applied ✓';
+    msg.className='coupon-msg ok'; msg.style.display='block';
+    msg.innerHTML=`<span class="coupon-applied-tag">✓ 22% OFF applied</span> — now Rs. ${COUPON_PRICE.toLocaleString()} / seat`;
+  }else{
+    currentPrice=PRICE;
+    couponApplied=false;
+    msg.className='coupon-msg bad'; msg.style.display='block';
+    msg.textContent='Invalid coupon code.';
+  }
+  updateSelBar();
+}
 
 // ── JSONBin ──────────────────────────────────────
 async function getBinId(){
@@ -447,7 +508,13 @@ function updateSelBar(){
   const b=document.getElementById('sel-bar'),t=document.getElementById('seat-total');
   if(!selSeats.length){ b.textContent='No seats selected'; b.style.color='rgba(246,239,221,0.35)'; }
   else{ b.style.color='var(--paper)'; b.innerHTML='<span style="color:#f2a93b;font-family:Rajdhani,sans-serif;font-weight:700;">SEATS </span>'+sortSeats(selSeats).join(', '); }
-  t.textContent='Rs. '+(selSeats.length*PRICE).toLocaleString();
+  const totalNow = selSeats.length*currentPrice;
+  if(couponApplied && selSeats.length){
+    const totalOrig = selSeats.length*PRICE;
+    t.innerHTML = `<span class="total-strike">Rs. ${totalOrig.toLocaleString()}</span>Rs. ${totalNow.toLocaleString()}`;
+  }else{
+    t.textContent='Rs. '+totalNow.toLocaleString();
+  }
 }
 
 function rowH(l,v,c){ return `<div class="summary-row${c||''}"><span>${l}</span><span>${v}</span></div>`; }
@@ -471,7 +538,9 @@ function buildSummary(tid,refId){
   document.getElementById(tid).innerHTML=
     rowH('Passenger',name)+rowH('Phone',phone)+(email?rowH('Email',email):'')+
     rowH('Route',route.from+' → '+route.to)+rowH('Date',fd)+
-    rowH('Seats',sortSeats(selSeats).join(', '))+rowH('Total','Rs. '+(selSeats.length*PRICE).toLocaleString(),' tl');
+    rowH('Seats',sortSeats(selSeats).join(', '))+
+    (couponApplied?rowH('Coupon',COUPON_LABEL+' (22% off)'):'')+
+    rowH('Total','Rs. '+(selSeats.length*currentPrice).toLocaleString(),' tl');
   if(refId){
     const short='#'+refId.replace('BK','');
     if(tid==='sum-rows'){ document.getElementById('sum-ref').textContent=short; buildBarcode(document.getElementById('sum-barcode')); }
@@ -524,7 +593,7 @@ async function confirmBooking(){
   const email=document.getElementById('pax-email').value.trim();
   const fd=new Date(tDate).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
   const seats=sortSeats(selSeats).join(', ');
-  const total='Rs. '+(selSeats.length*PRICE).toLocaleString();
+  const total='Rs. '+(selSeats.length*currentPrice).toLocaleString();
   const routeStr=route.from+' → '+route.to;
   const refId='BK'+String(Date.now()).slice(-5);
 
@@ -535,7 +604,7 @@ async function confirmBooking(){
   let saveOk=false;
   try{
     await fetchBookings();
-    allBookings.push({id:refId,name,phone,email,route:routeStr,date:tDate,seats:sortSeats(selSeats),status:'Pending',notes:'Booked via website',isAdminBlock:false,created:new Date().toISOString().split('T')[0]});
+    allBookings.push({id:refId,name,phone,email,route:routeStr,date:tDate,seats:sortSeats(selSeats),status:'Pending',notes:'Booked via website'+(couponApplied?' — coupon '+COUPON_LABEL+' applied':''),isAdminBlock:false,pricePerSeat:currentPrice,coupon:couponApplied?COUPON_LABEL:null,created:new Date().toISOString().split('T')[0]});
     await pushBookings(); saveOk=true;
   }catch(e){ console.warn('Save error',e); }
 
@@ -549,11 +618,11 @@ async function confirmBooking(){
   setNotif('n-save', saveOk, saveOk ? '✓ Booking saved to database' : '⚠ Save failed — email still sent');
 
   // 3. Build WhatsApp link
-  const waMsg=`🚌 *New Booking — Sambriddhi Air Bus*\n\nRef: ${refId}\nPassenger: ${name}\nPhone: ${phone}\nRoute: ${routeStr}\nDate: ${fd}\nSeats: ${seats}\nTotal: ${total}\nStatus: Pending Payment\n\nPlease confirm this booking.`;
+  const waMsg=`🚌 *New Booking — Sambriddhi Air Bus*\n\nRef: ${refId}\nPassenger: ${name}\nPhone: ${phone}\nRoute: ${routeStr}\nDate: ${fd}\nSeats: ${seats}\n${couponApplied?'Coupon: '+COUPON_LABEL+' (22% off)\n':''}Total: ${total}\nStatus: Pending Payment\n\nPlease confirm this booking.`;
   document.getElementById('wa-btn').href=`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waMsg)}`;
 
   // 4. Send EmailJS
-  const result = await sendEmailJS({from_name:name,from_email:email||phone+'@noemail.com',booking_ref:refId,route:routeStr,travel_date:fd,seats,total,phone,to_email:'sambriddhiairbus@gmail.com'});
+  const result = await sendEmailJS({from_name:name,from_email:email||phone+'@noemail.com',booking_ref:refId,route:routeStr,travel_date:fd,seats,total,phone,coupon:couponApplied?COUPON_LABEL:'None',to_email:'sambriddhiairbus@gmail.com'});
   setNotif('n-email', result.ok, result.ok ? '✓ Email sent to operator' : '⚠ Email failed — use WhatsApp below');
   if(result.ok){
     document.getElementById('stamp').style.display='block';
@@ -566,8 +635,11 @@ async function confirmBooking(){
 }
 
 function resetAll(){
-  selSeats=[]; tDate=''; lastEmailError=null;
+  selSeats=[]; tDate=''; lastEmailError=null; currentPrice=PRICE; couponApplied=false;
   ['pax-name','pax-phone','pax-email','travel-date'].forEach(id=>document.getElementById(id).value='');
+  const cIn=document.getElementById('coupon-input'); cIn.value=''; cIn.disabled=false;
+  const cBtn=document.getElementById('coupon-btn'); cBtn.disabled=false; cBtn.textContent='Apply';
+  document.getElementById('coupon-msg').style.display='none';
   document.getElementById('review-view').style.display='block';
   document.getElementById('success-view').style.display='none';
   document.getElementById('stamp').style.display='none';
