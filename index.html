@@ -304,6 +304,9 @@ const EJS_KEY      = 'yeWZviSUglEyqIb8n';
 const EJS_SERVICES = ['service_aznnwaj','service_8hyu1sc'];
 const EJS_TEMPLATE = 'template_7u0dhdi';
 const WA_NUMBER    = '9779763255296'; // Nepal format
+// Fixed shared database — must match the same value in admin.html, or
+// customer bookings will land in a different bin than the admin panel reads.
+const FIXED_BIN_ID = '69e5c3f436566621a8d01951';
 // ═══════════════════════════════════════════════════
 
 // App state — initialized FIRST, before anything that could throw (e.g. a
@@ -312,7 +315,7 @@ const WA_NUMBER    = '9779763255296'; // Nepal format
 let route          = { from:'Dharan', to:'Pokhara' };
 let selSeats       = [];
 let tDate          = '';
-let cachedBinId    = localStorage.getItem(BIN_ID_KEY) || null;
+let cachedBinId    = FIXED_BIN_ID || localStorage.getItem(BIN_ID_KEY) || null;
 let allBookings    = [];
 let lastEmailError = null;
 
@@ -351,6 +354,7 @@ function hideLoad(){ document.getElementById('lov').style.display='none'; }
 
 // ── JSONBin ──────────────────────────────────────
 async function getBinId(){
+  if(FIXED_BIN_ID) return FIXED_BIN_ID;
   if(cachedBinId) return cachedBinId;
   const res=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',headers:{'Content-Type':'application/json','X-Master-Key':MASTER_KEY,'X-Bin-Name':'sambriddhi-bookings','X-Bin-Private':'true'},body:JSON.stringify({bookings:[]})});
   const d=await res.json(); cachedBinId=d.metadata.id; localStorage.setItem(BIN_ID_KEY,cachedBinId); return cachedBinId;
