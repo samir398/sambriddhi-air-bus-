@@ -305,13 +305,31 @@ const EJS_SERVICES = ['service_aznnwaj','service_8hyu1sc'];
 const EJS_TEMPLATE = 'template_7u0dhdi';
 const WA_NUMBER    = '9779763255296'; // Nepal format
 // ═══════════════════════════════════════════════════
-emailjs.init(EJS_KEY);
-let route       = { from:'Dharan', to:'Pokhara' };
-let selSeats    = [];
-let tDate       = '';
-let cachedBinId = localStorage.getItem(BIN_ID_KEY) || null;
-let allBookings = [];
+
+// App state — initialized FIRST, before anything that could throw (e.g. a
+// blocked/slow EmailJS CDN), so the booking flow still works even if
+// email notifications end up unavailable.
+let route          = { from:'Dharan', to:'Pokhara' };
+let selSeats       = [];
+let tDate          = '';
+let cachedBinId    = localStorage.getItem(BIN_ID_KEY) || null;
+let allBookings    = [];
 let lastEmailError = null;
+
+// Initialize EmailJS defensively. If the CDN script was blocked (ad-blocker,
+// restrictive network, offline) `emailjs` will be undefined — guard against
+// that instead of letting it crash the whole page.
+let emailjsReady = false;
+try{
+  if(typeof emailjs !== 'undefined'){
+    emailjs.init(EJS_KEY);
+    emailjsReady = true;
+  } else {
+    console.warn('EmailJS library did not load — email notifications will be unavailable, but booking still works.');
+  }
+}catch(e){
+  console.warn('EmailJS init failed — email notifications will be unavailable, but booking still works.', e);
+}
 
 // Ambient particles (dust / headlight motes)
 (function(){
@@ -467,6 +485,9 @@ async function goStep(n){
 function setNotif(id,ok,txt){ const el=document.getElementById(id); el.className='notif-row '+(ok?'ok':'fail'); el.querySelector('span').textContent=txt; }
 
 async function sendEmailJS(params){
+  if(!emailjsReady){
+    return {ok:false, errors:['EmailJS library was not available (CDN blocked or offline) — use WhatsApp instead.']};
+  }
   const errors=[];
   for(const svc of EJS_SERVICES){
     try{
