@@ -301,7 +301,7 @@ const MASTER_KEY   = '$2a$10$lM8iv375PzNB9kY.0H2Pn.R/2MzTafbZ8gtWgCHIGvMsw2np8NC
 const ACCESS_KEY   = '$2a$10$Rq9teSheNL0xRMq7e0qB6.YGsp.L.Ql9fBpInwnRK9Km2UmYr1JNy';
 const BIN_ID_KEY   = 'sambriddhi_bin_id';
 const EJS_KEY      = 'yeWZviSUglEyqIb8n';
-const EJS_SERVICES =['service_aznnwaj'];
+const EJS_SERVICES = ['service_aznnwaj'];
 const EJS_TEMPLATE = 'template_iggvv2i';
 const WA_NUMBER    = '9779763255296'; // Nepal format
 // Fixed shared database — must match the same value in admin.html, or
@@ -381,6 +381,21 @@ function getOccupiedSeats(routeStr, date){
   return {booked, adminBlocked};
 }
 
+// ── Seat labeling ──────────────────────────────────
+// Left column: A1–A18 (2 seats per row, 9 rows)
+// Right column: B1–B9 (1 seat per row, 9 rows)
+// Sleeper berths: SP1, SP2
+function seatRank(id){
+  const s=String(id);
+  if(s.startsWith('SP')) return 2000+parseInt(s.slice(2),10);
+  if(s.startsWith('B'))  return 1000+parseInt(s.slice(1),10);
+  if(s.startsWith('A'))  return parseInt(s.slice(1),10);
+  return 9999;
+}
+function sortSeats(arr){
+  return [...arr].sort((a,b)=>seatRank(a)-seatRank(b));
+}
+
 // ── Build seat map ────────────────────────────────
 async function buildBus(){
   showLoad('Checking seat availability…','Please wait');
@@ -394,7 +409,7 @@ async function buildBus(){
   const aiLbl=document.createElement('div'); aiLbl.className='aisle-label'; aiLbl.textContent='AISLE'; aiCol.appendChild(aiLbl);
   const rCol=document.createElement('div'); rCol.className='col-right';
   for(let row=0;row<9;row++){
-    const la=row*2+1,lb=row*2+2,rc=row+19;
+    const la='A'+(row*2+1), lb='A'+(row*2+2), rc='B'+(row+1);
     const pair=document.createElement('div'); pair.className='seat-pair';
     pair.appendChild(mkSeat(la,booked,adminBlocked)); pair.appendChild(mkSeat(lb,booked,adminBlocked));
     lCol.appendChild(pair); rCol.appendChild(mkSeat(rc,booked,adminBlocked));
@@ -402,7 +417,7 @@ async function buildBus(){
   body.appendChild(lCol); body.appendChild(aiCol); body.appendChild(rCol);
   const slRow=document.getElementById('sleeper-row'); slRow.innerHTML='';
   for(let s=1;s<=2;s++){
-    const id='SL'+s,el=document.createElement('div');
+    const id='SP'+s,el=document.createElement('div');
     const isB=booked.has(id),isA=adminBlocked.has(id),isS=selSeats.includes(id);
     el.className='seat'+(isB?' booked':isA?' admin-blocked':isS?' selected':'');
     el.innerHTML=`<span class="sleeper-icon">&#128716;</span><span>${id}</span><span class="type-tag">SLEEPER</span>`;
@@ -426,10 +441,6 @@ function toggleSeat(el,id){
   if(selSeats.includes(id)){ selSeats=selSeats.filter(s=>s!==id); el.classList.remove('selected'); }
   else{ selSeats.push(id); el.classList.add('selected'); }
   updateSelBar();
-}
-
-function sortSeats(arr){
-  return [...arr].sort((a,b)=>{ const na=typeof a==='string'?999+parseInt(a.replace('SL','')):a; const nb=typeof b==='string'?999+parseInt(b.replace('SL','')):b; return na-nb; });
 }
 
 function updateSelBar(){
