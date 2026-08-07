@@ -331,11 +331,11 @@ const WA_NUMBER    = '9779763255296'; // Nepal format
 // Fixed shared database — must match the same value in admin.html, or
 // customer bookings will land in a different bin than the admin panel reads.
 const FIXED_BIN_ID = '69e5c3f436566621a8d01951';
-// ── Coupon config ────────────────────────────────
-// "Sambriddhi22" → Rs. 2,100 / seat (22% off the Rs. 2,500 base fare)
-const COUPON_CODE     = 'SAMBRIDDHI22';
-const COUPON_PRICE    = 2100;
-const COUPON_LABEL    = 'SAMBRIDDHI22';
+// ── Coupons ──────────────────────────────────────
+// Coupons are created and managed live from the Admin Panel → Coupons tab.
+// They live in the same shared database as bookings, so any coupon the
+// admin creates / enables / disables is picked up here automatically —
+// no code changes needed on this page to add a new coupon.
 // ═══════════════════════════════════════════════════
 
 // App state — initialized FIRST, before anything that could throw (e.g. a
@@ -346,9 +346,11 @@ let selSeats       = [];
 let tDate          = '';
 let cachedBinId    = FIXED_BIN_ID || localStorage.getItem(BIN_ID_KEY) || null;
 let allBookings    = [];
+let allCoupons     = [];
+let appliedCoupon  = null; // {code, percent}
 let lastEmailError = null;
 let currentPrice   = PRICE;
-let couponApplied  = false;
+
 
 // Initialize EmailJS defensively. If the CDN script was blocked (ad-blocker,
 // restrictive network, offline) `emailjs` will be undefined — guard against
@@ -384,8 +386,9 @@ function showLoad(msg,sub){ document.getElementById('lov').style.display='flex';
 function hideLoad(){ document.getElementById('lov').style.display='none'; }
 
 // ── Coupon ───────────────────────────────────────
-function applyCoupon(){
+async function applyCoupon(){
   const input=document.getElementById('coupon-input');
+  const btn=document.getElementById('coupon-btn');
   const msg=document.getElementById('coupon-msg');
   const code=input.value.trim().toUpperCase();
 
@@ -395,20 +398,26 @@ function applyCoupon(){
     return;
   }
 
-  if(code===COUPON_CODE){
-    currentPrice=COUPON_PRICE;
-    couponApplied=true;
-    input.value=COUPON_LABEL;
+  btn.disabled=true; btn.textContent='Checking…';
+  await fetchCoupons();
+  btn.disabled=false; btn.textContent='Apply';
+
+  const match=allCoupons.find(c=>c.code===code && c.active);
+
+  if(match){
+    currentPrice=Math.round(PRICE*(1-match.percent/100));
+    appliedCoupon={code:match.code,percent:match.percent};
+    input.value=match.code;
     input.disabled=true;
-    document.getElementById('coupon-btn').disabled=true;
-    document.getElementById('coupon-btn').textContent='Applied ✓';
+    btn.disabled=true;
+    btn.textContent='Applied ✓';
     msg.className='coupon-msg ok'; msg.style.display='block';
-    msg.innerHTML=`<span class="coupon-applied-tag">✓ 22% OFF applied</span> — now Rs. ${COUPON_PRICE.toLocaleString()} / seat`;
+    msg.innerHTML=`<span class="coupon-applied-tag">✓ ${match.percent}% OFF applied</span> — now Rs. ${currentPrice.toLocaleString()} / seat`;
   }else{
     currentPrice=PRICE;
-    couponApplied=false;
+    appliedCoupon=null;
     msg.className='coupon-msg bad'; msg.style.display='block';
-    msg.textContent='Invalid coupon code.';
+    msg.textContent='Invalid or expired coupon code.';
   }
   updateSelBar();
 }
@@ -417,15 +426,21 @@ function applyCoupon(){
 async function getBinId(){
   if(FIXED_BIN_ID) return FIXED_BIN_ID;
   if(cachedBinId) return cachedBinId;
-  const res=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',headers:{'Content-Type':'application/json','X-Master-Key':MASTER_KEY,'X-Bin-Name':'sambriddhi-bookings','X-Bin-Private':'true'},body:JSON.stringify({bookings:[]})});
+  const res=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',headers:{'Content-Type':'application/json','X-Master-Key':MASTER_KEY,'X-Bin-Name':'sambriddhi-bookings','X-Bin-Private':'true'},body:JSON.stringify({bookings:[],coupons:[]})});
   const d=await res.json(); cachedBinId=d.metadata.id; localStorage.setItem(BIN_ID_KEY,cachedBinId); return cachedBinId;
 }
 async function fetchBookings(){
-  try{ const id=await getBinId(); const res=await fetch(`https://api.jsonbin.io/v3/b/${id}/latest`,{headers:{'X-Master-Key':MASTER_KEY,'X-Access-Key':ACCESS_KEY}}); const d=await res.json(); allBookings=d.record.bookings||[]; }catch(e){ allBookings=[]; }
+  try{ const id=await getBinId(); const res=await fetch(`https://api.jsonbin.io/v3/b/${id}/latest`,{headers:{'X-Master-Key':MASTER_KEY,'X-Access-Key':ACCESS_KEY}}); const d=await res.json(); allBookings=d.record.bookings||[]; allCoupons=d.record.coupons||[]; }catch(e){ allBookings=[]; }
+}
+async function fetchCoupons(){
+  try{ const id=await getBinId(); const res=await fetch(`https://api.jsonbin.io/v3/b/${id}/latest`,{headers:{'X-Master-Key':MASTER_KEY,'X-Access-Key':ACCESS_KEY}}); const d=await res.json(); allCoupons=d.record.coupons||[]; allBookings=d.record.bookings||allBookings; }catch(e){ /* keep last known coupons */ }
 }
 async function pushBookings(){
   const id=await getBinId();
-  await fetch(`https://api.jsonbin.io/v3/b/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':MASTER_KEY},body:JSON.stringify({bookings:allBookings})});
+  // Re-fetch coupons right before saving so we never overwrite coupons the
+  // admin created/edited elsewhere with a stale local copy.
+  await fetchCoupons();
+  await fetch(`https://api.jsonbin.io/v3/b/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':MASTER_KEY},body:JSON.stringify({bookings:allBookings,coupons:allCoupons})});
 }
 
 // ── Seat state helpers ───────────────────────────
@@ -509,7 +524,7 @@ function updateSelBar(){
   if(!selSeats.length){ b.textContent='No seats selected'; b.style.color='rgba(246,239,221,0.35)'; }
   else{ b.style.color='var(--paper)'; b.innerHTML='<span style="color:#f2a93b;font-family:Rajdhani,sans-serif;font-weight:700;">SEATS </span>'+sortSeats(selSeats).join(', '); }
   const totalNow = selSeats.length*currentPrice;
-  if(couponApplied && selSeats.length){
+  if(appliedCoupon && selSeats.length){
     const totalOrig = selSeats.length*PRICE;
     t.innerHTML = `<span class="total-strike">Rs. ${totalOrig.toLocaleString()}</span>Rs. ${totalNow.toLocaleString()}`;
   }else{
@@ -539,7 +554,7 @@ function buildSummary(tid,refId){
     rowH('Passenger',name)+rowH('Phone',phone)+(email?rowH('Email',email):'')+
     rowH('Route',route.from+' → '+route.to)+rowH('Date',fd)+
     rowH('Seats',sortSeats(selSeats).join(', '))+
-    (couponApplied?rowH('Coupon',COUPON_LABEL+' (22% off)'):'')+
+    (appliedCoupon?rowH('Coupon',appliedCoupon.code+' ('+appliedCoupon.percent+'% off)'):'')+
     rowH('Total','Rs. '+(selSeats.length*currentPrice).toLocaleString(),' tl');
   if(refId){
     const short='#'+refId.replace('BK','');
@@ -604,7 +619,7 @@ async function confirmBooking(){
   let saveOk=false;
   try{
     await fetchBookings();
-    allBookings.push({id:refId,name,phone,email,route:routeStr,date:tDate,seats:sortSeats(selSeats),status:'Pending',notes:'Booked via website'+(couponApplied?' — coupon '+COUPON_LABEL+' applied':''),isAdminBlock:false,pricePerSeat:currentPrice,coupon:couponApplied?COUPON_LABEL:null,created:new Date().toISOString().split('T')[0]});
+    allBookings.push({id:refId,name,phone,email,route:routeStr,date:tDate,seats:sortSeats(selSeats),status:'Pending',notes:'Booked via website'+(appliedCoupon?' — coupon '+appliedCoupon.code+' applied':''),isAdminBlock:false,pricePerSeat:currentPrice,coupon:appliedCoupon?appliedCoupon.code:null,created:new Date().toISOString().split('T')[0]});
     await pushBookings(); saveOk=true;
   }catch(e){ console.warn('Save error',e); }
 
@@ -618,11 +633,11 @@ async function confirmBooking(){
   setNotif('n-save', saveOk, saveOk ? '✓ Booking saved to database' : '⚠ Save failed — email still sent');
 
   // 3. Build WhatsApp link
-  const waMsg=`🚌 *New Booking — Sambriddhi Air Bus*\n\nRef: ${refId}\nPassenger: ${name}\nPhone: ${phone}\nRoute: ${routeStr}\nDate: ${fd}\nSeats: ${seats}\n${couponApplied?'Coupon: '+COUPON_LABEL+' (22% off)\n':''}Total: ${total}\nStatus: Pending Payment\n\nPlease confirm this booking.`;
+  const waMsg=`🚌 *New Booking — Sambriddhi Air Bus*\n\nRef: ${refId}\nPassenger: ${name}\nPhone: ${phone}\nRoute: ${routeStr}\nDate: ${fd}\nSeats: ${seats}\n${appliedCoupon?'Coupon: '+appliedCoupon.code+' ('+appliedCoupon.percent+'% off)\n':''}Total: ${total}\nStatus: Pending Payment\n\nPlease confirm this booking.`;
   document.getElementById('wa-btn').href=`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(waMsg)}`;
 
   // 4. Send EmailJS
-  const result = await sendEmailJS({from_name:name,from_email:email||phone+'@noemail.com',booking_ref:refId,route:routeStr,travel_date:fd,seats,total,phone,coupon:couponApplied?COUPON_LABEL:'None',to_email:'sambriddhiairbus@gmail.com'});
+  const result = await sendEmailJS({from_name:name,from_email:email||phone+'@noemail.com',booking_ref:refId,route:routeStr,travel_date:fd,seats,total,phone,coupon:appliedCoupon?appliedCoupon.code:'None',to_email:'sambriddhiairbus@gmail.com'});
   setNotif('n-email', result.ok, result.ok ? '✓ Email sent to operator' : '⚠ Email failed — use WhatsApp below');
   if(result.ok){
     document.getElementById('stamp').style.display='block';
@@ -635,7 +650,7 @@ async function confirmBooking(){
 }
 
 function resetAll(){
-  selSeats=[]; tDate=''; lastEmailError=null; currentPrice=PRICE; couponApplied=false;
+  selSeats=[]; tDate=''; lastEmailError=null; currentPrice=PRICE; appliedCoupon=null;
   ['pax-name','pax-phone','pax-email','travel-date'].forEach(id=>document.getElementById(id).value='');
   const cIn=document.getElementById('coupon-input'); cIn.value=''; cIn.disabled=false;
   const cBtn=document.getElementById('coupon-btn'); cBtn.disabled=false; cBtn.textContent='Apply';
