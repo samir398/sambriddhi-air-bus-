@@ -405,7 +405,7 @@ async function applyCoupon(){
   const match=allCoupons.find(c=>c.code===code && c.active);
 
   if(match){
-    currentPrice=Math.round(PRICE*(1-match.percent/100));
+    currentPrice=match.priceOverride ? match.priceOverride : Math.round(PRICE*(1-match.percent/100));
     appliedCoupon={code:match.code,percent:match.percent};
     input.value=match.code;
     input.disabled=true;
@@ -458,14 +458,14 @@ function getOccupiedSeats(routeStr, date){
 }
 
 // ── Seat labeling ──────────────────────────────────
-// Left column: A1–A18 (2 seats per row, 9 rows)
-// Right column: B1–B9 (1 seat per row, 9 rows)
+// Left column: B1–B18 (2 seats per row, 9 rows)
+// Right column: A1–A9 (1 seat per row, 9 rows)
 // Sleeper berths: SP1, SP2
 function seatRank(id){
   const s=String(id);
   if(s.startsWith('SP')) return 2000+parseInt(s.slice(2),10);
-  if(s.startsWith('B'))  return 1000+parseInt(s.slice(1),10);
-  if(s.startsWith('A'))  return parseInt(s.slice(1),10);
+  if(s.startsWith('A'))  return 1000+parseInt(s.slice(1),10);
+  if(s.startsWith('B'))  return parseInt(s.slice(1),10);
   return 9999;
 }
 function sortSeats(arr){
@@ -485,7 +485,7 @@ async function buildBus(){
   const aiLbl=document.createElement('div'); aiLbl.className='aisle-label'; aiLbl.textContent='AISLE'; aiCol.appendChild(aiLbl);
   const rCol=document.createElement('div'); rCol.className='col-right';
   for(let row=0;row<9;row++){
-    const la='A'+(row*2+1), lb='A'+(row*2+2), rc='B'+(row+1);
+    const la='B'+(row*2+1), lb='B'+(row*2+2), rc='A'+(row+1);
     const pair=document.createElement('div'); pair.className='seat-pair';
     pair.appendChild(mkSeat(la,booked,adminBlocked)); pair.appendChild(mkSeat(lb,booked,adminBlocked));
     lCol.appendChild(pair); rCol.appendChild(mkSeat(rc,booked,adminBlocked));
