@@ -336,6 +336,9 @@ const FIXED_BIN_ID = '69e5c3f436566621a8d01951';
 // They live in the same shared database as bookings, so any coupon the
 // admin creates / enables / disables is picked up here automatically —
 // no code changes needed on this page to add a new coupon.
+// Each coupon code can only be redeemed ONCE across all customers: once it
+// appears on a non-cancelled booking, it is treated as used and rejected
+// on any further attempt (checked at apply-time and again right before save).
 // ═══════════════════════════════════════════════════
 
 // App state — initialized FIRST, before anything that could throw (e.g. a
@@ -385,6 +388,14 @@ document.getElementById('travel-date').min = new Date().toISOString().split('T')
 function showLoad(msg,sub){ document.getElementById('lov').style.display='flex'; document.getElementById('lov-msg').textContent=msg||'Loading…'; document.getElementById('lov-sub').textContent=sub||''; }
 function hideLoad(){ document.getElementById('lov').style.display='none'; }
 
+// ── Coupon one-time-use check ─────────────────────
+// A coupon is considered "used" the moment it is attached to any booking
+// that hasn't been cancelled. This relies on allBookings being fresh, so
+// callers should fetch bookings/coupons right before calling this.
+function isCouponUsed(code){
+  return allBookings.some(b => b.coupon === code && b.status !== 'Cancelled');
+}
+
 // ── Coupon ───────────────────────────────────────
 async function applyCoupon(){
   const input=document.getElementById('coupon-input');
@@ -399,26 +410,37 @@ async function applyCoupon(){
   }
 
   btn.disabled=true; btn.textContent='Checking…';
-  await fetchCoupons();
+  await fetchCoupons(); // also refreshes allBookings, needed for the used-check below
   btn.disabled=false; btn.textContent='Apply';
 
   const match=allCoupons.find(c=>c.code===code && c.active);
 
-  if(match){
-    currentPrice=match.priceOverride ? match.priceOverride : Math.round(PRICE*(1-match.percent/100));
-    appliedCoupon={code:match.code,percent:match.percent};
-    input.value=match.code;
-    input.disabled=true;
-    btn.disabled=true;
-    btn.textContent='Applied ✓';
-    msg.className='coupon-msg ok'; msg.style.display='block';
-    msg.innerHTML=`<span class="coupon-applied-tag">✓ ${match.percent}% OFF applied</span> — now Rs. ${currentPrice.toLocaleString()} / seat`;
-  }else{
+  if(!match){
     currentPrice=PRICE;
     appliedCoupon=null;
     msg.className='coupon-msg bad'; msg.style.display='block';
     msg.textContent='Invalid or expired coupon code.';
+    updateSelBar();
+    return;
   }
+
+  if(isCouponUsed(match.code)){
+    currentPrice=PRICE;
+    appliedCoupon=null;
+    msg.className='coupon-msg bad'; msg.style.display='block';
+    msg.textContent='This coupon has already been used and cannot be used again.';
+    updateSelBar();
+    return;
+  }
+
+  currentPrice=match.priceOverride ? match.priceOverride : Math.round(PRICE*(1-match.percent/100));
+  appliedCoupon={code:match.code,percent:match.percent};
+  input.value=match.code;
+  input.disabled=true;
+  btn.disabled=true;
+  btn.textContent='Applied ✓';
+  msg.className='coupon-msg ok'; msg.style.display='block';
+  msg.innerHTML=`<span class="coupon-applied-tag">✓ ${match.percent}% OFF applied</span> — now Rs. ${currentPrice.toLocaleString()} / seat`;
   updateSelBar();
 }
 
@@ -608,12 +630,34 @@ async function confirmBooking(){
   const email=document.getElementById('pax-email').value.trim();
   const fd=new Date(tDate).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
   const seats=sortSeats(selSeats).join(', ');
-  const total='Rs. '+(selSeats.length*currentPrice).toLocaleString();
   const routeStr=route.from+' → '+route.to;
   const refId='BK'+String(Date.now()).slice(-5);
 
   document.getElementById('confirm-btn').disabled=true;
   showLoad('Saving your booking…','Just a moment');
+
+  // Re-validate the coupon's one-time-use status right before saving. This
+  // closes the race window where two customers could both pass the earlier
+  // "Apply" check for the same coupon before either one finishes booking.
+  if(appliedCoupon){
+    await fetchBookings();
+    if(isCouponUsed(appliedCoupon.code)){
+      hideLoad();
+      document.getElementById('confirm-btn').disabled=false;
+      const msg=document.getElementById('coupon-msg');
+      appliedCoupon=null;
+      currentPrice=PRICE;
+      const cIn=document.getElementById('coupon-input'); cIn.disabled=false;
+      const cBtn=document.getElementById('coupon-btn'); cBtn.disabled=false; cBtn.textContent='Apply';
+      msg.className='coupon-msg bad'; msg.style.display='block';
+      msg.textContent='Sorry, this coupon was just used by someone else. Please remove it or apply a different code and continue.';
+      goStep(2);
+      alert('This coupon was just used by another booking. Please review your coupon on the Seats step before confirming.');
+      return;
+    }
+  }
+
+  const total='Rs. '+(selSeats.length*currentPrice).toLocaleString();
 
   // 1. Save to JSONBin
   let saveOk=false;
