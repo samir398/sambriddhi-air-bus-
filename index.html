@@ -120,7 +120,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
 .seat-pair{display:flex;gap:5px;}
 .seat-pair .seat{flex:1;}
 .bus-tail{border-top:2px dashed var(--line);margin-top:10px;padding-top:8px;}
-.sleeper-row{display:flex;gap:8px;max-width:220px;margin:0 auto;}
+.sleeper-row{display:flex;gap:8px;max-width:280px;margin:0 auto;}
 .sleeper-row .seat{flex:1;height:52px;border-radius:8px;font-size:9px;flex-direction:column;gap:2px;}
 .sleeper-icon{font-size:14px;line-height:1;}
 .type-tag{font-size:7.5px;color:var(--marigold);font-family:'Rajdhani',sans-serif;letter-spacing:1px;}
@@ -770,7 +770,8 @@ async function saveNewBooking(booking){
   const rec=(await r.json()).record;
   const bookings=rec.bookings||[];
   const coupons=rec.coupons||[];
-  const taken=bookings.some(b=>b.route===booking.route && b.date===booking.date && b.status!=='Cancelled' && (b.seats||[]).some(s=>booking.seats.includes(s)));
+  const newSeats=booking.seats.map(normSeat);
+  const taken=bookings.some(b=>b.route===booking.route && b.date===booking.date && b.status!=='Cancelled' && (b.seats||[]).some(s=>newSeats.includes(normSeat(s))));
   if(taken) throw new Error('SEAT_TAKEN');
   bookings.push(booking);
   const p=await fetch(`https://api.jsonbin.io/v3/b/${id}`,{
@@ -782,20 +783,24 @@ async function saveNewBooking(booking){
 }
 
 // ── Seat helpers ─────────────────────────────────
+// Old sleeper IDs SP1/SP2 are now BS1/BS2 — old bookings keep working.
+const normSeat = s => { s=String(s); return s==='SP1'?'BS1':s==='SP2'?'BS2':s; };
 function getOccupiedSeats(routeStr, date){
   const booked=new Set(), adminBlocked=new Set();
   allBookings.forEach(b=>{
     if(b.route===routeStr && b.date===date && b.status!=='Cancelled'){
       (b.seats||[]).forEach(s=>{
-        if(b.isAdminBlock) adminBlocked.add(String(s)); else booked.add(String(s));
+        s=normSeat(s);
+        if(b.isAdminBlock) adminBlocked.add(s); else booked.add(s);
       });
     }
   });
   return {booked, adminBlocked};
 }
 function seatRank(id){
-  const s=String(id);
-  if(s.startsWith('SP')) return 2000+parseInt(s.slice(2),10);
+  const s=normSeat(id);
+  if(s.startsWith('BS')) return 2000+parseInt(s.slice(2),10);
+  if(s.startsWith('AS')) return 2100+parseInt(s.slice(2),10);
   if(s.startsWith('A'))  return 1000+parseInt(s.slice(1),10);
   if(s.startsWith('B'))  return parseInt(s.slice(1),10);
   return 9999;
@@ -817,7 +822,7 @@ function renderBus(){
   const aiCol=document.createElement('div'); aiCol.className='col-aisle';
   const aiLbl=document.createElement('div'); aiLbl.className='aisle-label'; aiLbl.textContent=t('aisle'); aiCol.appendChild(aiLbl);
   const rCol=document.createElement('div'); rCol.className='col-right';
-  for(let row=0;row<9;row++){
+  for(let row=0;row<11;row++){
     const la='B'+(row*2+1), lb='B'+(row*2+2), rc='A'+(row+1);
     const pair=document.createElement('div'); pair.className='seat-pair';
     pair.appendChild(mkSeat(la,booked,adminBlocked)); pair.appendChild(mkSeat(lb,booked,adminBlocked));
@@ -825,15 +830,16 @@ function renderBus(){
   }
   body.appendChild(lCol); body.appendChild(aiCol); body.appendChild(rCol);
   const slRow=document.getElementById('sleeper-row'); slRow.innerHTML='';
-  for(let s=1;s<=2;s++){
-    const id='SP'+s,el=document.createElement('div');
+  ['BS1','BS2','AS1','AS2'].forEach((id,i)=>{
+    const el=document.createElement('div');
     const isB=booked.has(id),isA=adminBlocked.has(id),isS=selSeats.includes(id);
     el.className='seat'+(isB?' booked':isA?' admin-blocked':isS?' selected':'');
     el.innerHTML=`<span class="sleeper-icon">&#128716;</span><span>${id}</span><span class="type-tag">${esc(t('sleeper'))}</span>`;
     el.style.display='flex';
+    if(i===2) el.style.marginLeft='10px';   // gap between B-side and A-side sleepers
     if(!isB&&!isA) el.onclick=()=>toggleSeat(el,id);
     slRow.appendChild(el);
-  }
+  });
   updateSelBar();
 }
 function mkSeat(id,booked,adminBlocked){
