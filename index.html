@@ -69,7 +69,7 @@ body{font-family:'Inter','Noto Sans Devanagari',sans-serif;background:radial-gra
 
 .steps{display:flex;margin-bottom:1.5rem;gap:6px;}
 .step{flex:1;padding:9px 4px;text-align:center;font-size:10.5px;font-family:'Rajdhani',sans-serif;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(238,251,243,0.4);background:rgba(0,0,0,0.3);border:1px solid var(--line);border-radius:7px;transition:all .4s cubic-bezier(.34,1.56,.64,1);}
-.step.active{background:linear-gradient(90deg,#34d98a,#1fa866);color:var(--ink);border-color:var(--marigold);transform:translateY(-2px) scale(1.04);box-shadow:0 8px 18px -8px rgba(52,217,138,.9);}
+.step.active{background:linear-gradient(90deg,#34d98a,#1fa866);color:var(--ink);border-color:var(--marigold);transform:translateY(-2px) scale(1.04);box-shadow:none;}
 .step.done{background:rgba(31,157,99,0.35);color:#9af5c6;border-color:rgba(52,217,138,0.6);animation:popIn .4s both;}
 
 .panel{display:none;}
@@ -102,7 +102,7 @@ input::placeholder{color:rgba(238,251,243,0.32);}
 input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightness(0.8);}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 
-.bus-shell{background:rgba(0,0,0,0.4);border:1px solid var(--line);border-radius:12px;padding:1rem;margin-bottom:1rem;backdrop-filter:blur(3px);}
+.bus-shell{background:rgba(0,0,0,0.4);border:1px solid var(--line);border-radius:12px;padding:1rem;margin-bottom:1rem;}
 .bus-nose{text-align:center;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--marigold);border-bottom:2px dashed var(--line);padding-bottom:8px;margin-bottom:10px;text-transform:uppercase;animation:glowText 2s ease-in-out infinite;}
 @keyframes glowText{0%,100%{opacity:.7}50%{opacity:1}}
 .bus-body{display:flex;gap:0;max-width:130px;margin:0 auto;}
@@ -194,7 +194,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
 .ndot{width:7px;height:7px;border-radius:50%;background:currentColor;flex-shrink:0;}
 .diag{font-size:10.5px;color:rgba(238,251,243,0.4);margin-top:4px;font-family:'Space Mono',monospace;text-align:left;line-height:1.5;word-break:break-word;}
 
-.datebar{background:rgba(0,0,0,0.38);border:1px solid var(--line);border-radius:16px;padding:14px;animation:rise .6s .35s cubic-bezier(.2,.8,.2,1) both;backdrop-filter:blur(3px);}
+.datebar{background:rgba(0,0,0,0.38);border:1px solid var(--line);border-radius:16px;padding:14px;animation:rise .6s .35s cubic-bezier(.2,.8,.2,1) both;}
 .datebar-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;}
 .date-pick{position:relative;cursor:pointer;flex:1;}
 .date-lbl{font-family:'Rajdhani','Noto Sans Devanagari',sans-serif;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(238,251,243,0.5);margin-bottom:4px;}
@@ -233,10 +233,6 @@ body{background:radial-gradient(circle at 15% 10%,#0f4a2b 0,transparent 45%),rad
 
 /* animated background: faster 3-colour drift + rotating aurora + recoloured waves */
 .bg-layer{background:linear-gradient(135deg,#052313,#0c4a2c,#5a0f3a,#6b0f1f,#0c4a2c);background-size:400% 400%;animation:bgshift 14s ease-in-out infinite;}
-.bg-layer::after{content:'';position:absolute;left:50%;top:50%;width:170%;aspect-ratio:1;margin:-85% 0 0 -85%;
-  background:conic-gradient(from 0deg,rgba(52,217,138,.55),rgba(255,95,162,.5),rgba(226,58,78,.5),rgba(52,217,138,.55));
-  filter:blur(70px);opacity:.38;mix-blend-mode:screen;animation:aurora 26s linear infinite;pointer-events:none;}
-@keyframes aurora{to{transform:rotate(360deg)}}
 .wave.w1 path{fill:#16a863}
 .wave.w2 path{fill:#c4287a}
 .wave.w3 path{fill:#8a1428}
@@ -267,24 +263,30 @@ input:focus{border-color:#ff5fa2;}
 .day .dm{color:#ff8abf;}
 html[lang="ne"] .day .dm{font-size:10px;}
 
-/* ═══ MOVING ROAD (over the original background) ═══ */
-.road{position:absolute;left:0;right:0;bottom:0;height:62%;overflow:hidden;
-  -webkit-mask-image:linear-gradient(to top,#000 45%,transparent);mask-image:linear-gradient(to top,#000 45%,transparent);opacity:.9;}
-.road-plane{position:absolute;left:50%;bottom:-6%;width:260%;height:230%;margin-left:-130%;transform-origin:50% 100%;
-  transform:perspective(320px) rotateX(72deg);
-  background:linear-gradient(90deg,transparent 0 33%,#e9fff3 33% 33.7%,#0d1411 33.7% 66.3%,#e9fff3 66.3% 67%,transparent 67%);}
-.road-plane::after{content:'';position:absolute;left:49.65%;width:.7%;top:0;bottom:0;
-  background:repeating-linear-gradient(180deg,#34d98a 0 80px,transparent 80px 180px);background-size:100% 180px;
-  animation:roadmove .8s linear infinite;}
-.road-plane::before{content:'';position:absolute;left:33.7%;width:32.6%;top:0;bottom:0;
-  background:linear-gradient(90deg,rgba(255,95,162,.12),transparent 25%,transparent 75%,rgba(226,58,78,.12));}
-@keyframes roadmove{to{background-position:0 180px}}
+/* ═══ MOVING ROAD (vertical, covers whole page, bus driving up) ═══ */
+.road{position:absolute;inset:0;overflow:hidden;opacity:.6;}
+.road-plane{position:absolute;inset:0;background:linear-gradient(90deg,#0b1410,#18221c 50%,#0b1410);border-left:4px solid #e9fff3;border-right:4px solid #e9fff3;}
+.road-plane::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(52,217,138,.16),transparent 30%,transparent 70%,rgba(255,95,162,.14));}
+.road-plane::after{content:'';position:absolute;left:0;right:0;top:-120px;bottom:0;background-image:repeating-linear-gradient(180deg,#34d98a 0 60px,transparent 60px 120px);background-size:4px 120px;background-repeat:repeat-y;background-position:50% 0;animation:roadmove .7s linear infinite;will-change:transform;}
+@keyframes roadmove{to{transform:translateY(120px)}}
+.roadbus{position:absolute;left:50%;top:86%;font-size:46px;line-height:1;z-index:1;transform:translate(-50%,-50%) rotate(90deg);animation:busbob .35s ease-in-out infinite alternate;filter:drop-shadow(0 3px 4px rgba(0,0,0,.5));}
+@keyframes busbob{from{transform:translate(-50%,-50%) rotate(90deg)}to{transform:translate(-47%,-50%) rotate(90deg)}}
+
+/* ═══ PERFORMANCE ═══ */
+.app{contain:paint;}
+.calm .bg-layer,.calm .wave,.calm .glowline,.calm .busrun,.calm .price-pill,.calm .logo-badge,.calm .logo-dot,.calm .bus-nose{animation-play-state:paused;}
+.calm .btn-green::after,.calm .search-btn{animation:none;}
+@media (max-width:600px){
+  .wave.w2,.wave.w3{display:none;}
+  .btn-green::after{display:none;}
+  .rc.sel,.seat.selected{animation:none;}
+}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="bg-layer">
-    <div class="road"><div class="road-plane"></div></div>
+    <div class="road"><div class="road-plane"></div><div class="roadbus">🚌</div></div>
     <canvas id="live"></canvas>
     <div class="waves">
       <svg class="wave w3" viewBox="0 0 1200 150" preserveAspectRatio="none" aria-hidden="true"><path d="M0 70 C150 20 300 120 450 70 S750 20 900 70 S1100 110 1200 70 V150 H0z" fill="#2a0f1c"/></svg>
@@ -311,13 +313,6 @@ html[lang="ne"] .day .dm{font-size:10px;}
       <div class="route-strip"><span class="busrun">🚌</span><span data-i18n="c_Dharan"></span><span class="dash"></span><span data-i18n="c_Itahari"></span><span class="dash"></span><span data-i18n="c_Pokhara"></span></div>
       <div class="price-pill" data-i18n="pill"></div>
     </div>
-    <div class="steps">
-      <div class="step active" id="s1" data-i18n="st1"></div>
-      <div class="step" id="s2" data-i18n="st2"></div>
-      <div class="step" id="s3" data-i18n="st3"></div>
-      <div class="step" id="s4" data-i18n="st4"></div>
-    </div>
-
     <!-- STEP 1 -->
     <div class="panel active" id="p1">
       <div class="sec-label" data-i18n="chooseRoute"></div>
@@ -577,49 +572,46 @@ try{
   else console.warn('EmailJS library did not load — booking still works.');
 }catch(e){ console.warn('EmailJS init failed.', e); }
 
-// Live animated background (canvas): glowing orbs + drifting sparks. Even mix of green, pink and red.
+// Live animated background (canvas) — kept light: few orbs/sparks, 30fps cap, paused when not on step 1.
 (function(){
   const cv=document.getElementById('live'), app=document.querySelector('.app'), ctx=cv.getContext('2d');
   const reduce=window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let W=0,H=0,dpr=Math.min(window.devicePixelRatio||1,2);
+  const small=window.innerWidth<600;
+  let W=0,H=0,dpr=1,last=0;
   const GREEN=[[52,217,138],[31,190,110],[110,245,180]], PINK=[255,95,162], RED=[226,58,78];
   const pick=i=>{ const r=i%9; return r<3?GREEN[i%3]:(r<6?PINK:RED); };
   const orbs=[], sparks=[];
+  const NO=small?4:6, NS=small?12:22;
   function resize(){ W=app.clientWidth; H=app.clientHeight; cv.width=W*dpr; cv.height=H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
   function init(){
     resize(); orbs.length=0; sparks.length=0;
-    for(let i=0;i<10;i++) orbs.push({x:Math.random()*W,y:Math.random()*H,r:90+Math.random()*130,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,ph:Math.random()*6.28,c:pick(i),a:.22+Math.random()*.16});
-    for(let i=0;i<46;i++) sparks.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*2+.8,vx:(Math.random()-.5)*.3,vy:-(Math.random()*.5+.15),c:pick(i+3),a:Math.random()*.5+.25,ph:Math.random()*6.28});
+    for(let i=0;i<NO;i++) orbs.push({x:Math.random()*W,y:Math.random()*H,r:90+Math.random()*100,vx:(Math.random()-.5)*.6,vy:(Math.random()-.5)*.6,c:pick(i*2),a:.22+Math.random()*.14});
+    for(let i=0;i<NS;i++) sparks.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*2+.8,vx:(Math.random()-.5)*.5,vy:-(Math.random()*.8+.25),c:pick(i+3),a:Math.random()*.5+.3});
   }
   function frame(ts){
-    if(document.hidden){ requestAnimationFrame(frame); return; }
-    const t=ts/1000; ctx.clearRect(0,0,W,H);
+    requestAnimationFrame(frame);
+    if(document.hidden || reduce || app.classList.contains('calm')) return;
+    if(ts-last<33) return;           // ~30fps
+    last=ts;
+    ctx.clearRect(0,0,W,H);
     ctx.globalCompositeOperation='lighter';
     for(const o of orbs){
       o.x+=o.vx; o.y+=o.vy;
       if(o.x<-o.r) o.x=W+o.r; if(o.x>W+o.r) o.x=-o.r;
       if(o.y<-o.r) o.y=H+o.r; if(o.y>H+o.r) o.y=-o.r;
-      const R=o.r*(1+Math.sin(t*.8+o.ph)*.12);
-      const g=ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,R);
+      const g=ctx.createRadialGradient(o.x,o.y,0,o.x,o.y,o.r);
       g.addColorStop(0,`rgba(${o.c[0]},${o.c[1]},${o.c[2]},${o.a})`);
       g.addColorStop(1,`rgba(${o.c[0]},${o.c[1]},${o.c[2]},0)`);
-      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(o.x,o.y,R,0,6.283); ctx.fill();
+      ctx.fillStyle=g; ctx.fillRect(o.x-o.r,o.y-o.r,o.r*2,o.r*2);
     }
     for(const p of sparks){
-      p.x+=p.vx+Math.sin(t+p.ph)*.12; p.y+=p.vy;
+      p.x+=p.vx; p.y+=p.vy;
       if(p.y<-8){ p.y=H+8; p.x=Math.random()*W; }
       if(p.x<-8) p.x=W+8; if(p.x>W+8) p.x=-8;
-      const tw=.55+Math.sin(t*2+p.ph)*.45;
-      ctx.fillStyle=`rgba(${p.c[0]},${p.c[1]},${p.c[2]},${p.a*tw})`;
-      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,6.283); ctx.fill();
-    }
-    ctx.lineWidth=.6;
-    for(let i=0;i<sparks.length;i++) for(let j=i+1;j<sparks.length;j++){
-      const dx=sparks[i].x-sparks[j].x, dy=sparks[i].y-sparks[j].y, d=dx*dx+dy*dy;
-      if(d<4900){ const c=sparks[i].c; ctx.strokeStyle=`rgba(${c[0]},${c[1]},${c[2]},${(1-d/4900)*.22})`; ctx.beginPath(); ctx.moveTo(sparks[i].x,sparks[i].y); ctx.lineTo(sparks[j].x,sparks[j].y); ctx.stroke(); }
+      ctx.fillStyle=`rgba(${p.c[0]},${p.c[1]},${p.c[2]},${p.a})`;
+      ctx.fillRect(p.x,p.y,p.r*2,p.r*2);
     }
     ctx.globalCompositeOperation='source-over';
-    if(!reduce) requestAnimationFrame(frame);
   }
   init();
   if(window.ResizeObserver) new ResizeObserver(resize).observe(app); else window.addEventListener('resize',resize);
@@ -929,7 +921,8 @@ async function goStep(n){
     document.getElementById('sum-barcode').innerHTML='';
     buildSummary('sum-rows', curRef);
   }
-  [1,2,3,4].forEach(i=>{ document.getElementById('p'+i).classList.toggle('active',i===n); const s=document.getElementById('s'+i); s.className='step'+(i===n?' active':i<n?' done':''); });
+  document.querySelector('.app').classList.toggle('calm',n!==1);
+  [1,2,3,4].forEach(i=>{ document.getElementById('p'+i).classList.toggle('active',i===n); const s=document.getElementById('s'+i); if(s) s.className='step'+(i===n?' active':i<n?' done':''); });
 }
 
 // ── Notifications ────────────────────────────────
