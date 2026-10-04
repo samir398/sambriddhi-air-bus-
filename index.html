@@ -105,10 +105,10 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
 .bus-shell{background:rgba(0,0,0,0.4);border:1px solid var(--line);border-radius:12px;padding:1rem;margin-bottom:1rem;backdrop-filter:blur(3px);}
 .bus-nose{text-align:center;font-family:'Rajdhani',sans-serif;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--marigold);border-bottom:2px dashed var(--line);padding-bottom:8px;margin-bottom:10px;text-transform:uppercase;animation:glowText 2s ease-in-out infinite;}
 @keyframes glowText{0%,100%{opacity:.7}50%{opacity:1}}
-.bus-body{display:flex;gap:0;max-width:220px;margin:0 auto;}
-.col-left{display:flex;flex-direction:column;gap:5px;width:52px;}
+.bus-body{display:flex;gap:0;max-width:130px;margin:0 auto;}
+.col-left{display:flex;flex-direction:column;gap:5px;width:76px;}
 .col-aisle{width:20px;display:flex;align-items:center;justify-content:center;}
-.col-right{display:flex;flex-direction:column;gap:5px;width:28px;}
+.col-right{display:flex;flex-direction:column;gap:5px;width:34px;}
 .aisle-label{writing-mode:vertical-rl;font-size:8.5px;color:rgba(238,251,243,0.25);letter-spacing:1px;font-family:'Rajdhani',sans-serif;text-transform:uppercase;}
 .seat{width:100%;height:34px;border:1px solid var(--line);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;font-family:'Space Mono',monospace;cursor:pointer;color:rgba(238,251,243,0.6);background:rgba(0,0,0,0.25);transition:all 0.15s;animation:seatPop .4s cubic-bezier(.34,1.56,.64,1) backwards;}
 @keyframes seatPop{from{opacity:0;transform:scale(.3) translateY(10px)}to{opacity:1;transform:none}}
@@ -117,6 +117,7 @@ input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1) brightnes
 .seat.admin-blocked{background:repeating-linear-gradient(45deg,rgba(150,90,200,0.18),rgba(150,90,200,0.18) 4px,rgba(0,0,0,0.15) 4px,rgba(0,0,0,0.15) 8px);color:rgba(215,170,255,0.6);cursor:not-allowed;border-color:rgba(190,120,230,0.35);}
 .seat.selected{background:linear-gradient(135deg,#34d98a,#1fa866);color:var(--ink);border-color:#34d98a;animation:selPulse 1.6s ease-in-out infinite;}
 @keyframes selPulse{0%,100%{box-shadow:0 0 8px rgba(52,217,138,.5)}50%{box-shadow:0 0 16px rgba(52,217,138,.95)}}
+.seat.long{font-size:8px;letter-spacing:-0.3px;}
 .seat-pair{display:flex;gap:5px;}
 .seat-pair .seat{flex:1;}
 .bus-tail{border-top:2px dashed var(--line);margin-top:10px;padding-top:8px;}
@@ -770,8 +771,7 @@ async function saveNewBooking(booking){
   const rec=(await r.json()).record;
   const bookings=rec.bookings||[];
   const coupons=rec.coupons||[];
-  const newSeats=booking.seats.map(normSeat);
-  const taken=bookings.some(b=>b.route===booking.route && b.date===booking.date && b.status!=='Cancelled' && (b.seats||[]).some(s=>newSeats.includes(normSeat(s))));
+  const taken=bookings.some(b=>b.route===booking.route && b.date===booking.date && b.status!=='Cancelled' && seatsOf(b).some(s=>booking.seats.includes(s)));
   if(taken) throw new Error('SEAT_TAKEN');
   bookings.push(booking);
   const p=await fetch(`https://api.jsonbin.io/v3/b/${id}`,{
@@ -783,28 +783,38 @@ async function saveNewBooking(booking){
 }
 
 // ── Seat helpers ─────────────────────────────────
-// Old sleeper IDs SP1/SP2 are now BS1/BS2 — old bookings keep working.
-const normSeat = s => { s=String(s); return s==='SP1'?'BS1':s==='SP2'?'BS2':s; };
+// ── Seat names ───────────────────────────────────
+// Left side (pairs): J1 J2 | B-KAA B-KHA | B1..B18      Right side: SP1 SP2 | A1..A9
+// Sleepers: BS1 BS2 AS1 AS2
+const LEFT_SEATS  = ['J1','J2','B-KAA','B-KHA', ...Array.from({length:18},(_,i)=>'B'+(i+1))];
+const RIGHT_SEATS = ['SP1','SP2', ...Array.from({length:9},(_,i)=>'A'+(i+1))];
+const SEAT_ORDER  = [...LEFT_SEATS, ...RIGHT_SEATS, 'BS1','BS2','AS1','AS2'];
+// Bookings saved before this renaming have no seatVer:2 — convert their old seat IDs to the new names.
+function legacySeat(s){
+  s=String(s); let m;
+  if(s==='SP1') return 'BS1';
+  if(s==='SP2') return 'BS2';
+  if(s==='A1')  return 'SP1';
+  if(s==='A2')  return 'SP2';
+  if((m=s.match(/^A(\d+)$/))) return 'A'+(parseInt(m[1],10)-2);
+  const fixed={B1:'J1',B2:'J2',B3:'B-KAA',B4:'B-KHA'};
+  if(fixed[s]) return fixed[s];
+  if((m=s.match(/^B(\d+)$/))) return 'B'+(parseInt(m[1],10)-4);
+  return s;
+}
+const seatsOf = b => (b.seats||[]).map(x => b.seatVer===2 ? String(x) : legacySeat(x));
 function getOccupiedSeats(routeStr, date){
   const booked=new Set(), adminBlocked=new Set();
   allBookings.forEach(b=>{
     if(b.route===routeStr && b.date===date && b.status!=='Cancelled'){
-      (b.seats||[]).forEach(s=>{
-        s=normSeat(s);
+      seatsOf(b).forEach(s=>{
         if(b.isAdminBlock) adminBlocked.add(s); else booked.add(s);
       });
     }
   });
   return {booked, adminBlocked};
 }
-function seatRank(id){
-  const s=normSeat(id);
-  if(s.startsWith('BS')) return 2000+parseInt(s.slice(2),10);
-  if(s.startsWith('AS')) return 2100+parseInt(s.slice(2),10);
-  if(s.startsWith('A'))  return 1000+parseInt(s.slice(1),10);
-  if(s.startsWith('B'))  return parseInt(s.slice(1),10);
-  return 9999;
-}
+function seatRank(id){ const i=SEAT_ORDER.indexOf(String(id)); return i<0?9999:i; }
 function sortSeats(arr){ return [...arr].sort((a,b)=>seatRank(a)-seatRank(b)); }
 
 async function buildBus(){
@@ -823,7 +833,7 @@ function renderBus(){
   const aiLbl=document.createElement('div'); aiLbl.className='aisle-label'; aiLbl.textContent=t('aisle'); aiCol.appendChild(aiLbl);
   const rCol=document.createElement('div'); rCol.className='col-right';
   for(let row=0;row<11;row++){
-    const la='B'+(row*2+1), lb='B'+(row*2+2), rc='A'+(row+1);
+    const la=LEFT_SEATS[row*2], lb=LEFT_SEATS[row*2+1], rc=RIGHT_SEATS[row];
     const pair=document.createElement('div'); pair.className='seat-pair';
     pair.appendChild(mkSeat(la,booked,adminBlocked)); pair.appendChild(mkSeat(lb,booked,adminBlocked));
     lCol.appendChild(pair); rCol.appendChild(mkSeat(rc,booked,adminBlocked));
@@ -846,6 +856,7 @@ function mkSeat(id,booked,adminBlocked){
   const el=document.createElement('div');
   const isB=booked.has(String(id)),isA=adminBlocked.has(String(id)),isS=selSeats.includes(id);
   el.className='seat'+(isB?' booked':isA?' admin-blocked':isS?' selected':'');
+  if(String(id).length>3) el.classList.add('long');
   el.textContent=id; el.style.animationDelay=(Math.random()*0.35)+'s';
   if(!isB&&!isA) el.onclick=()=>toggleSeat(el,id);
   return el;
@@ -978,7 +989,7 @@ async function confirmBooking(){
       id:refId,name,phone,email,route:routeStr,date:tDate,
       seats:sortSeats(selSeats),status:'Pending',
       notes:'Booked via website'+(appliedCoupon?' — coupon '+appliedCoupon.code+' applied':''),
-      isAdminBlock:false,pricePerSeat:currentPrice,
+      isAdminBlock:false,seatVer:2,pricePerSeat:currentPrice,
       coupon:appliedCoupon?appliedCoupon.code:null,
       created:new Date().toISOString().split('T')[0]
     });
