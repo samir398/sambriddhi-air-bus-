@@ -450,6 +450,7 @@ const I18N = {
     st1:'1 Route', st2:'2 Seats', st3:'3 Details', st4:'4 Confirm',
     chooseRoute:'Choose your route', daily430:'Daily 4:30 PM', daily500:'Daily 5:00 PM', price25:'Rs. 2,500',
     date:'Date', errDate:'Please select a travel date.',
+    busLocked:'Sorry, this bus is not available on the selected date.',
     front:'▲ Driver / Front', sleeperTitle:'Sleeper Berths', aisle:'AISLE', sleeper:'SLEEPER',
     lFree:'Free', lSel:'Selected', lBooked:'Booked', lRes:'Reserved',
     noSeats:'No seats selected', seatsLbl:'SEATS ',
@@ -478,6 +479,7 @@ const I18N = {
     st1:'1 मार्ग', st2:'2 सिट', st3:'3 विवरण', st4:'4 पुष्टि',
     chooseRoute:'आफ्नो मार्ग छान्नुहोस्', daily430:'दैनिक साँझ 4:30', daily500:'दैनिक साँझ 5:00', price25:'रु. 2,500',
     date:'मिति', errDate:'कृपया यात्रा मिति छान्नुहोस्।',
+    busLocked:'क्षमा गर्नुहोस्, यो मितिमा यो बस उपलब्ध छैन।',
     front:'▲ चालक / अगाडि', sleeperTitle:'स्लिपर बर्थ', aisle:'बाटो', sleeper:'स्लिपर',
     lFree:'खाली', lSel:'छानिएको', lBooked:'बुक भइसकेको', lRes:'रिजर्भ',
     noSeats:'कुनै सिट छानिएको छैन', seatsLbl:'सिट ',
@@ -557,6 +559,7 @@ let tDate          = '';
 let cachedBinId    = FIXED_BIN_ID || localStorage.getItem(BIN_ID_KEY) || null;
 let allBookings    = [];
 let allCoupons     = [];
+let allLocks       = [];     // bus locks set in the admin panel
 let appliedCoupon  = null;
 let lastEmailError = null;
 let currentPrice   = PRICE;
@@ -722,7 +725,7 @@ async function applyCoupon(){
   if(!code){ couponState='empty'; renderCouponMsg(); return; }
 
   btn.disabled=true; btn.textContent=t('checking');
-  await fetchBookings();   // also refreshes coupons + usage counts
+  await fetchBookings();   // also refreshes coupons + locks + usage counts
   btn.disabled=false; btn.textContent=t('apply');
 
   const match=allCoupons.find(c=>c.code===code && couponUsable(c));
@@ -743,7 +746,7 @@ async function applyCoupon(){
 async function getBinId(){
   if(FIXED_BIN_ID) return FIXED_BIN_ID;
   if(cachedBinId) return cachedBinId;
-  const res=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',headers:{'Content-Type':'application/json','X-Master-Key':MASTER_KEY,'X-Bin-Name':'sambriddhi-bookings','X-Bin-Private':'true'},body:JSON.stringify({bookings:[],coupons:[]})});
+  const res=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',headers:{'Content-Type':'application/json','X-Master-Key':MASTER_KEY,'X-Bin-Name':'sambriddhi-bookings','X-Bin-Private':'true'},body:JSON.stringify({bookings:[],coupons:[],locks:[]})});
   const d=await res.json(); cachedBinId=d.metadata.id; localStorage.setItem(BIN_ID_KEY,cachedBinId); return cachedBinId;
 }
 async function fetchBookings(){
@@ -754,8 +757,16 @@ async function fetchBookings(){
     const d=await res.json();
     allBookings=d.record.bookings||[];
     allCoupons=d.record.coupons||[];
+    allLocks=d.record.locks||[];
   }catch(e){ console.warn('fetchBookings failed',e); }
 }
+
+// ── Bus locks (set in the admin panel) ───────────
+// A lock matches one route on one date, or route 'ALL' on that date.
+function findLock(routeStr, date, list){
+  return (list||allLocks).find(l => l.date===date && (l.route===routeStr || l.route==='ALL'));
+}
+
 async function saveNewBooking(booking){
   const id=await getBinId();
   const r=await fetch(`https://api.jsonbin.io/v3/b/${id}/latest`,{headers:{'X-Master-Key':MASTER_KEY,'X-Access-Key':ACCESS_KEY}});
@@ -763,13 +774,15 @@ async function saveNewBooking(booking){
   const rec=(await r.json()).record;
   const bookings=rec.bookings||[];
   const coupons=rec.coupons||[];
+  const locks=rec.locks||[];     // keep the locks, otherwise saving would erase them
+  if(findLock(booking.route, booking.date, locks)) throw new Error('BUS_LOCKED');
   const taken=bookings.some(b=>b.route===booking.route && b.date===booking.date && b.status!=='Cancelled' && seatsOf(b).some(s=>booking.seats.includes(s)));
   if(taken) throw new Error('SEAT_TAKEN');
   bookings.push(booking);
   const p=await fetch(`https://api.jsonbin.io/v3/b/${id}`,{
     method:'PUT',
     headers:{'Content-Type':'application/json','X-Master-Key':MASTER_KEY},
-    body:JSON.stringify({bookings,coupons})
+    body:JSON.stringify({bookings,coupons,locks})
   });
   if(!p.ok) throw new Error('Save failed: HTTP '+p.status);
 }
@@ -910,7 +923,15 @@ async function goStep(n){
   if(n===2){
     const d=document.getElementById('travel-date').value;
     if(!d){ document.getElementById('p1e').style.display='block'; return; }
-    document.getElementById('p1e').style.display='none'; tDate=d; selSeats=[]; updateSelBar(); await buildBus();
+    document.getElementById('p1e').style.display='none'; tDate=d; selSeats=[]; updateSelBar();
+    await buildBus();   // also loads the latest locks
+    const lk=findLock(route.from+' → '+route.to, d);
+    if(lk){
+      const e=document.getElementById('p1e');
+      e.textContent = t('busLocked') + (lk.reason ? ' — '+lk.reason : '');
+      e.style.display='block';
+      return;   // stay on step 1
+    }
   }
   if(n===3){ if(!selSeats.length){ document.getElementById('p2e').style.display='block'; return; } document.getElementById('p2e').style.display='none'; }
   if(n===4){
@@ -939,7 +960,7 @@ function renderSuccess(){
     +'<br><span style="font-size:11px;opacity:0.6">'+esc(t('refNote',{ref:run.ref}))+'</span>';
   if(run.save===null) setNotifPending('n-save',t('savingNote'));
   else if(run.save.ok) setNotif('n-save',true,t('saved'));
-  else setNotif('n-save',false,t('saveFail',{err: run.save.err==='SEAT_TAKEN' ? t('seatTaken') : run.save.err}));
+  else setNotif('n-save',false,t('saveFail',{err: run.save.err==='SEAT_TAKEN' ? t('seatTaken') : run.save.err==='BUS_LOCKED' ? t('busLocked') : run.save.err}));
   if(run.email===null) setNotifPending('n-email',t('sendingEmail'));
   else setNotif('n-email',run.email.ok, run.email.ok ? t('emailOk') : t('emailFail'));
 }
